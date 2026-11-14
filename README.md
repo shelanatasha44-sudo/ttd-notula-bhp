@@ -1,7 +1,9 @@
 # Tanda Tangan Notula BHP Medan
 
-Halaman tanda tangan digital untuk Notula Rapat Monitoring Lanjutan Pengampuan (13 November 2026).
+Web tanda tangan dan koreksi notula digital, Seksi Harta Peninggalan Wilayah II BHP Medan.
 
-- `public/` halaman statis (Cloudflare Pages, output directory `public`)
-- `functions/api/ttd.js` API simpan/ambil tanda tangan, butuh KV binding bernama `TTD`
-- Link tanda tangan per nama: `/?n=<kode>&k=<token>` (token tidak disimpan di repo, hanya hash-nya)
+**Alamat resmi: https://notulabhp.my.id**
+
+- `public/` halaman web (aset statis Cloudflare Worker)
+- `src/worker.js` dan `src/api.js` API notula, tanda tangan, dan koreksi, memakai KV binding `TTD`
+- Link tanda tangan per orang: `https://notulabhp.my.id/ttd<namadepan><nomor>` (token tidak disimpan di repo, hanya hash-nya)
