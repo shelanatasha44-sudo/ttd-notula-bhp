@@ -72,6 +72,7 @@ async function getDoc(env, id) {
 const upgrading = {};
 function upgradeSeed(env, d, sd) {
   if (upgrading[d.id]) return upgrading[d.id];
+  if (sd.replace) return (upgrading[d.id] = replaceSeed(env, d, sd));
   return (upgrading[d.id] = (async () => {
     await env.TTD.put('pdf:' + d.id, sd.pdf);
     for (const s of d.signers) {
@@ -140,6 +141,23 @@ async function carrySigs(env, d, resign = new Set()) {
     const sg = await env.TTD.get('sig:' + d.id + ':' + s.key, 'json');
     if (sg && sg.ver === d.ver - 1) { sg.ver = d.ver; await env.TTD.put('sig:' + d.id + ':' + s.key, JSON.stringify(sg)); }
   }
+}
+// Dokumen diganti total (salah unggah): link pendek nama yang sama tetap, ttd & koreksi lama dihapus
+async function replaceSeed(env, d, sd) {
+  await env.TTD.put('pdf:' + d.id, sd.pdf);
+  const keep = new Set(sd.signers.map(x => x.key));
+  for (const s of d.signers) {
+    await env.TTD.delete('sig:' + d.id + ':' + s.key);
+    if (!keep.has(s.key) && s.short) await env.TTD.delete('short:' + s.short);
+  }
+  const prev = d.signers;
+  d.signers = await ensureTokens(normSigners(sd.signers, prev));
+  for (const s of d.signers) { const o = prev.find(p => p.key === s.key); if (o) { s.short = o.short; s.token = o.token; s.tokenHash = o.tokenHash; } }
+  await assignShorts(env, d);
+  await env.TTD.put('kor:' + d.id, '[]');
+  Object.assign(d, { title: sd.title, subtitle: sd.subtitle, created: sd.created, ver: (d.ver || 1) + 1, seedRev: sd.rev, fixSig: true, updated: new Date().toISOString() });
+  await putDoc(env, d);
+  return d;
 }
 async function canView(d, k, v) {
   if (v && d.view && v === d.view) return true;

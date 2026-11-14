@@ -59,7 +59,7 @@ input[type=file]{font:inherit;font-size:14px}
 textarea{min-height:70px;resize:vertical}
 label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:12px 0 5px}
 .pages{position:relative}
-.page{position:relative;margin:0 0 16px;background:#fff;box-shadow:0 2px 10px rgba(20,33,61,.12);border-radius:6px;overflow:hidden;touch-action:pan-y}
+.page{position:relative;margin:0 0 16px;background:#fff;box-shadow:0 2px 10px rgba(20,33,61,.12);border-radius:6px;overflow:hidden;touch-action:pan-x pan-y}
 .page canvas{display:block;width:100%;height:auto}
 .page .ov{position:absolute;inset:0}
 .pgno{position:absolute;right:6px;bottom:6px;font-size:10px;background:rgba(15,47,92,.75);color:#fff;padding:2px 6px;border-radius:6px}
@@ -81,7 +81,7 @@ label.f{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:1
 .korbar .t{font-size:13px;margin-bottom:8px;line-height:1.4}
 .korbar .btn{padding:10px 12px;font-size:14px}
 @keyframes up{from{transform:translateY(100%)}to{transform:none}}
-body.koreksi .page{outline:3px solid var(--hl);cursor:crosshair;touch-action:pan-y}
+body.koreksi .page{outline:3px solid var(--hl);cursor:crosshair;touch-action:pan-x pan-y}
 body.koreksi.stabilo .page{touch-action:none;outline-color:#ff922b}
 body.koreksi main{padding-bottom:170px}
 .modal{position:fixed;inset:0;background:rgba(10,20,40,.55);display:none;align-items:flex-end;justify-content:center;z-index:40}
@@ -138,6 +138,14 @@ body.coaching .actbar{z-index:51;box-shadow:0 0 0 4px #ffd166,0 10px 30px rgba(0
 @keyframes poke{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,10px)}}
 .tag{display:inline-block;padding:2px 8px;border-radius:8px;font-weight:800}
 .tag.y{background:#ffd166;color:#3b2a00}.tag.b{background:#2457b8;color:#fff}
+.pscroll{overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;margin:0 -6px;padding:0 6px}
+.pscroll .pages{min-width:100%}
+.zoom{position:fixed;right:10px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:18;display:flex;flex-direction:column;align-items:center;background:rgba(255,255,255,.96);border-radius:16px;box-shadow:0 6px 20px rgba(20,33,61,.22);overflow:hidden;backdrop-filter:blur(6px)}
+.zoom button{appearance:none;border:0;background:transparent;width:46px;height:44px;font-size:22px;font-weight:800;color:var(--brand2);cursor:pointer;font-family:inherit}
+.zoom button:disabled{color:#c3cad6}
+.zoom span{font-size:11px;font-weight:800;color:var(--muted);padding:2px 0}
+body:not(.hasbar) .zoom{bottom:calc(18px + env(safe-area-inset-bottom))}
+body.koreksi .zoom{bottom:calc(150px + env(safe-area-inset-bottom))}
 .hidden{display:none!important}
 </style>
 </head>
@@ -221,21 +229,51 @@ async function renderPdf(container, url) {
   container.innerHTML = '<div class="loading"><div class="spin"></div>Memuat notula...</div>';
   PDF = await pdfjsLib.getDocument({ url }).promise;
   container.innerHTML = ''; PAGES = [];
-  const width = Math.min(container.clientWidth || 800, 860), dpr = Math.min(2, Math.max(1.5, devicePixelRatio || 1));
+  const width = container.clientWidth || 800, dpr = Math.min(2, Math.max(1.5, devicePixelRatio || 1));
   for (let i = 1; i <= PDF.numPages; i++) {
     const page = await PDF.getPage(i);
-    const vp1 = page.getViewport({ scale: 1 }), scale = width / vp1.width * dpr, vp = page.getViewport({ scale });
+    const vp1 = page.getViewport({ scale: 1 }), scale = Math.min(3.2, width / vp1.width * dpr), vp = page.getViewport({ scale });
     const wrap = document.createElement('div'); wrap.className = 'page'; wrap.dataset.page = i; wrap.id = 'pg' + i;
     const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height;
     const ov = document.createElement('div'); ov.className = 'ov';
     const no = document.createElement('div'); no.className = 'pgno'; no.textContent = 'Hal. ' + i + '/' + PDF.numPages;
     wrap.append(cv, ov, no); container.appendChild(wrap);
-    PAGES.push({ wrap, ov, cv });
+    PAGES.push({ wrap, ov, cv, page, vp1 });
     cv.dataset.w = vp.width; cv.dataset.h = vp.height; cv.style.aspectRatio = vp.width + ' / ' + vp.height;
     lazyRender(cv, page, vp);
   }
 }
 const ovOf = p => PAGES[p - 1]?.ov;
+// ---------------- zoom dokumen (stabil: posisi baca dijaga, halaman ditajamkan setelah zoom) ----------------
+const ZOOMS = [1, 1.25, 1.5, 2, 2.5]; let ZI = 0, zoomT = null;
+function setZoom(dir) {
+  const ni = Math.max(0, Math.min(ZOOMS.length - 1, ZI + dir)); if (ni === ZI) return;
+  const box = $('pages'), sc = $('pageScroll'); if (!box || !sc) return;
+  const top = box.getBoundingClientRect().top + scrollY, hBefore = box.offsetHeight;
+  const anchor = Math.max(0, Math.min(1, (scrollY + innerHeight / 2 - top) / hBefore));
+  const cx = (sc.scrollLeft + sc.clientWidth / 2) / sc.scrollWidth;
+  ZI = ni; box.style.width = (ZOOMS[ZI] * 100) + '%';
+  window.scrollTo(0, top + anchor * box.offsetHeight - innerHeight / 2);
+  sc.scrollLeft = cx * sc.scrollWidth - sc.clientWidth / 2;
+  $('zLbl').textContent = Math.round(ZOOMS[ZI] * 100) + '%';
+  $('zOut').disabled = ZI === 0; $('zIn').disabled = ZI === ZOOMS.length - 1;
+  clearTimeout(zoomT); zoomT = setTimeout(sharpen, 300);
+}
+let sharpIO = null;
+function sharpen() {
+  const width = $('pages').clientWidth, dpr = Math.min(2, Math.max(1.5, devicePixelRatio || 1));
+  if (sharpIO) sharpIO.disconnect();
+  const todo = new Map();
+  PAGES.forEach(p => { if (p.page) todo.set(p.wrap, p); });
+  const go = p => {
+    const vp = p.page.getViewport({ scale: Math.min(3.2, width / p.vp1.width * dpr) });
+    if (+p.cv.width === Math.round(vp.width)) return;
+    const nc = document.createElement('canvas'); nc.width = vp.width; nc.height = vp.height; nc.style.aspectRatio = p.cv.style.aspectRatio;
+    p.page.render({ canvasContext: nc.getContext('2d'), viewport: vp }).promise.then(() => { p.wrap.replaceChild(nc, p.cv); p.cv = nc; }).catch(() => {});
+  };
+  sharpIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { sharpIO.unobserve(e.target); go(todo.get(e.target)); } }), { rootMargin: '600px 0px' }) : null;
+  todo.forEach((p, w) => sharpIO ? sharpIO.observe(w) : go(p));
+}
 const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); e.target._render(); } }), { rootMargin: '800px 0px' }) : null;
 function lazyRender(cv, page, vp) {
   cv._render = () => page.render({ canvasContext: cv.getContext('2d'), viewport: vp });
@@ -307,12 +345,14 @@ async function showDoc() {
   app.innerHTML = `
     <div id="adminCard"></div>
     <div id="guide"></div>
-    <div class="card"><h2>📄 Isi Notula</h2><p class="small" style="margin:0 0 10px">Tanda tangan muncul otomatis di kolomnya. Penanda 📍 adalah koreksi dari peserta, ketuk untuk melihat.</p><div class="pages" id="pages"></div></div>
+    <div class="card"><h2>📄 Isi Notula</h2><p class="small" style="margin:0 0 10px">Tanda tangan muncul otomatis di kolomnya. Penanda 📍 adalah koreksi dari peserta, ketuk untuk melihat.</p><div id="pageScroll" class="pscroll"><div class="pages" id="pages"></div></div></div>
+    <div class="zoom" id="zoomBar"><button id="zIn" aria-label="Perbesar">＋</button><span id="zLbl">100%</span><button id="zOut" aria-label="Perkecil" disabled>－</button></div>
     <div id="meCard"></div>
     <div class="card"><div class="stat"><div class="ring" id="ring"><span id="ringTx">0%</span></div><div class="grow"><h2 style="margin:0 0 4px">Status Tanda Tangan</h2><div class="small" id="prog"></div></div></div><div class="progress"><i id="bar" style="width:0"></i></div><div id="list"></div>
       <div class="btns" style="margin-top:12px"><button class="btn sec" id="dl">⬇️ Unduh PDF bertanda tangan</button></div></div>
     <div class="card" id="korCard"></div>`;
   $('dl').onclick = downloadPdf;
+  $('zIn').onclick = () => setZoom(1); $('zOut').onclick = () => setZoom(-1);
   renderStatic();
   await renderPdf($('pages'), pdfUrl());
   renderOverlays();

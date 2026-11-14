@@ -89,101 +89,73 @@ export const SEEDS = [
   "id": "notula-rata-makmur-20260914",
   "no": 2,
   "file": "n2.pdf",
-  "title": "Notula Rapat Pembahasan Rencana Pembayaran Utang Pajak Kepailitan PT Rata Makmur (Dalam Pailit)",
-  "subtitle": "Balai Harta Peninggalan Medan · Senin, 14 September 2026",
-  "created": "2026-09-14T06:00:00.000Z",
+  "title": "Berita Acara Rapat Koordinasi dengan Hakim Pengawas Kepailitan PT Rata Makmur (Dalam Pailit)",
+  "subtitle": "Balai Harta Peninggalan Medan · Rabu, 11 November 2026",
+  "created": "2026-11-11T03:00:00.000Z",
   "signers": [
    {
+    "key": "dartimnov-mt-harahap",
+    "name": "Dartimnov M.T Harahap",
+    "role": "Kurator Keperdataan Ahli Madya",
+    "page": 4,
+    "x": 0.1663,
+    "y": 0.4894,
+    "w": 0.2873,
+    "h": 0.0689
+   },
+   {
+    "key": "syafriadi-lubis",
     "name": "Syafriadi Lubis",
     "role": "Kepala Balai Harta Peninggalan Medan",
     "page": 4,
-    "x": 0.6182,
-    "y": 0.3932,
-    "w": 0.2217,
-    "h": 0.0582
+    "x": 0.5476,
+    "y": 0.4894,
+    "w": 0.2856,
+    "h": 0.0689
    },
    {
-    "name": "Dartimnov MT Harahap",
-    "role": "Tim Kurator",
-    "page": 4,
-    "x": 0.4704,
-    "y": 0.4906,
-    "w": 0.252,
-    "h": 0.0344
-   },
-   {
+    "key": "elsintha-damayanti",
     "name": "Elsintha Damayanti",
-    "role": "Tim Kurator",
+    "role": "Kepala Seksi Harta Peninggalan Wilayah II",
     "page": 4,
-    "x": 0.4704,
-    "y": 0.5214,
-    "w": 0.252,
-    "h": 0.0344
+    "x": 0.4048,
+    "y": 0.6022,
+    "w": 0.215,
+    "h": 0.0321
    },
    {
-    "name": "Nanang Surya Purnama",
-    "role": "Tim Kurator",
-    "page": 4,
-    "x": 0.4704,
-    "y": 0.5523,
-    "w": 0.252,
-    "h": 0.0333
-   },
-   {
-    "name": "Joko Prabowo",
-    "role": "Tim Kurator",
-    "page": 4,
-    "x": 0.4704,
-    "y": 0.5832,
-    "w": 0.252,
-    "h": 0.0333
-   },
-   {
-    "name": "Nur Fairuz Diba Nasution",
-    "role": "Tim Kurator",
-    "page": 4,
-    "x": 0.4704,
-    "y": 0.6141,
-    "w": 0.252,
-    "h": 0.0333
-   },
-   {
+    "key": "shela-natasha",
     "name": "Shela Natasha",
-    "role": "Tim Kurator",
+    "role": "Kurator Keperdataan Ahli Muda",
     "page": 4,
-    "x": 0.4704,
-    "y": 0.6438,
-    "w": 0.252,
-    "h": 0.0344
+    "x": 0.4048,
+    "y": 0.6283,
+    "w": 0.215,
+    "h": 0.0333
    },
    {
+    "key": "hutri-zebua",
     "name": "Hutri Zebua",
-    "role": "Tim Kurator",
+    "role": "Kurator Keperdataan Ahli Pertama",
     "page": 4,
-    "x": 0.4704,
-    "y": 0.6747,
-    "w": 0.252,
-    "h": 0.0344
+    "x": 0.4048,
+    "y": 0.6557,
+    "w": 0.215,
+    "h": 0.0321
    },
    {
-    "name": "Andre Yosua Surbakti",
-    "role": "Tim Kurator",
+    "key": "benyamin",
+    "name": "Benyamin",
+    "role": "Pihak yang berminat atas lahan bekas Hak Guna Usaha",
     "page": 4,
-    "x": 0.4704,
-    "y": 0.7055,
-    "w": 0.252,
-    "h": 0.0333
-   },
-   {
-    "name": "Yusril Ihza Mahendra",
-    "role": "Tim Kurator",
-    "page": 4,
-    "x": 0.4704,
-    "y": 0.7364,
-    "w": 0.252,
-    "h": 0.0333
+    "x": 0.4048,
+    "y": 0.683,
+    "w": 0.215,
+    "h": 0.0321
    }
-  ]
+  ],
+  "rev": 2,
+  "replace": true
  },
  {
   "id": "notula-rata-makmur-20261110",
