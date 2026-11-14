@@ -658,7 +658,7 @@ function renderAdmin() {
       ${s.token ? `<div class="linkbox"><input type="text" readonly value="${esc(linkFor(s))}"></div>` : '<div class="small">Link lama sudah dibagikan sebelumnya (tetap berlaku). Tekan Link baru jika ingin membuat ulang.</div>'}</div>
       <div class="btns" style="flex-direction:column;flex:none">${s.token ? `<button class="btn sm" data-copy="${esc(s.key)}">Salin</button><a class="btn sm sec" style="text-decoration:none;text-align:center" target="_blank" href="https://wa.me/?text=${encodeURIComponent(waText(s))}">WA</a>` : ''}
       <button class="btn sm sec" data-regen="${esc(s.key)}">Link baru</button></div></div>`).join('')}
-      <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button><button class="btn warn" id="copyRemind">🔔 Salin pengingat yang belum ttd</button></div>
+      <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button><button class="btn warn" id="copyRemind">🔔 Salin pengingat yang belum ttd</button>${S.doc.ver > 1 ? '<button class="btn warn" id="copyResign">🔁 Salin pesan ttd ulang (revisi)</button>' : ''}</div>
       <div class="row"><div class="grow"><b>👁️ Link lihat saja</b><span class="small">Untuk orang yang hanya perlu membaca notula ini, tanpa tanda tangan.</span><div class="linkbox"><input type="text" readonly value="${esc(viewLink())}"></div></div><button class="btn sm" id="copyView">Salin</button></div></div>
     <div data-p="rev" class="hidden"><p>Unggah PDF revisi untuk menimpa notula saat ini. Link notula dan link tanda tangan tidak berubah.</p>
       <div class="btns"><button class="btn" id="revUp">⬆️ Unggah PDF revisi</button></div></div>
@@ -672,6 +672,7 @@ function renderAdmin() {
     try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, regenerate: b.dataset.regen }) }); toast('🔗 Link baru dibuat'); loadAdmin(); } catch (e) { toast('⚠️ ' + e.message); }
   });
   $('copyView').onclick = () => copy(viewLink());
+  if ($('copyResign')) $('copyResign').onclick = () => copyResign();
   $('copyRemind').onclick = () => {
     const left = a.signers.filter(s => s.token && !sigOk(s));
     if (!left.length) return toast('🎉 Semua sudah menandatangani');
@@ -698,6 +699,12 @@ function renderAdmin() {
     if (!confirm('Hapus notula ini beserta semua tanda tangan dan koreksinya? Tindakan ini tidak bisa dibatalkan.')) return;
     try { await api('docs/' + DOC_ID + '/admin', { method: 'DELETE', body: JSON.stringify({ k: ADMIN }) }); location.href = adminHome(); } catch (e) { toast('⚠️ ' + e.message); }
   };
+}
+// pesan WA ttd ulang setelah revisi, memakai link yang sama
+function copyResign() {
+  const list = S.admin.signers.filter(s => s.token && S.sigs[s.key] && !sigOk(s));
+  if (!list.length) return toast('Tidak ada yang perlu tanda tangan ulang');
+  copy(`Selamat ${salam()} Bapak/Ibu. Mohon ttd ulang, Bapak/Ibu. Dikarenakan sudah diperbaiki sesuai revisi sebelumnya.\n\n${S.doc.title}\n\n` + list.map(s => `${s.name}:\n${linkFor(s)}`).join('\n\n') + '\n\nTerima kasih 🙏');
 }
 function renderApproved() {
   const el = $('approvedCard'); if (!el) return;
@@ -729,7 +736,12 @@ function openRevision(justApproved) {
         msg.textContent = 'Mengunggah dan menimpa file lama...';
         await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, pdf: await fileB64(f), ...(signers ? { signers } : {}) }) });
         closeSheet(); confetti(); toast('✅ Revisi terpasang. Link tetap sama.');
-        setTimeout(() => location.reload(), 1200);
+        await afterChange(); await loadAdmin();
+        const n2 = S.admin.signers.filter(x => x.token && S.sigs[x.key] && !sigOk(x)).length;
+        await renderPdf($('pages'), pdfUrl()); renderOverlays();
+        if (n2) openSheet(`<div class="big-emoji">🔁</div><h3 style="text-align:center">${n2} orang perlu tanda tangan ulang</h3>
+          <p class="lead" style="text-align:center">Kirim pesan WA berisi link yang sama agar mereka menandatangani versi revisi.</p>
+          <div class="btns"><button class="btn sec" onclick="closeSheet()">Nanti</button><button class="btn" id="rsCopy">📋 Salin pesan WA</button></div>`, sh2 => sh2.querySelector('#rsCopy').onclick = () => { copyResign(); closeSheet(); });
       } catch (er) { msg.textContent = '⚠️ Gagal mengunggah: ' + er.message; }
     };
   });
