@@ -184,6 +184,19 @@ export async function onRequest(ctx) {
 
   try {
     // ---------- daftar & buat notula (admin) ----------
+    // tes notifikasi email (dibatasi 1x per 2 menit), memicu email aktivasi FormSubmit
+    if (parts[0] === 'notify-test' && m === 'GET') {
+      if (await env.TTD.get('notifytest')) return err('Tunggu 2 menit sebelum tes lagi', 429);
+      await env.TTD.put('notifytest', '1', { expirationTtl: 120 });
+      const to = env.NOTIFY_EMAIL || NOTIFY_EMAIL;
+      const r = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(to), {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json', origin, referer: origin + '/' },
+        body: JSON.stringify({ _subject: '🔔 Tes notifikasi web tanda tangan notula', _template: 'table', _captcha: 'false', Pesan: 'Jika email ini masuk, notifikasi koreksi dan tanda tangan sudah aktif.', Waktu: wib(new Date().toISOString()) }),
+      });
+      const text = await r.text();
+      return json({ status: r.status, formsubmit: text.slice(0, 600) });
+    }
     if (parts[0] === 'pegawai' && m === 'GET') {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);
       return json(PEGAWAI);
