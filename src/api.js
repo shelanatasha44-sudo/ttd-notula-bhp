@@ -40,6 +40,19 @@ const clean = (s, n = 500) => String(s ?? '').slice(0, n);
 const num = v => Math.max(0, Math.min(1, Number(v) || 0));
 
 const PASS_HASH = '9708aae5022ad8ae652b713c37cd4bca3e41ce2278504094a91400e37afa2818'; // password login admin
+// ---------- notifikasi email (berjalan di latar belakang, tidak menunggu) ----------
+// Dikirim lewat FormSubmit ke email admin. Email pertama berisi tautan aktivasi yang perlu diklik sekali.
+const NOTIFY_EMAIL = 'shelanatasha44@gmail.com';
+function notify(ctx, env, origin, subject, fields) {
+  const to = env.NOTIFY_EMAIL || NOTIFY_EMAIL;
+  const job = fetch('https://formsubmit.co/ajax/' + encodeURIComponent(to), {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json', origin, referer: origin + '/' },
+    body: JSON.stringify({ _subject: subject, _template: 'table', _captcha: 'false', ...fields }),
+  }).catch(() => {});
+  if (ctx && ctx.waitUntil) ctx.waitUntil(job);
+}
+const wib = iso => new Date(iso).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB';
 async function isAdmin(k) { if (!k) return false; const h = await sha256(k); return h === ADMIN_HASH || h === PASS_HASH; }
 
 async function getIndex(env) { return (await env.TTD.get('docs', 'json')) || []; }
@@ -160,6 +173,7 @@ async function ensureTokens(signers) {
 
 export async function onRequest(ctx) {
   const { request, env, params } = ctx;
+  const origin = new URL(request.url).origin;
   if (!env.TTD) return err('Penyimpanan KV (TTD) belum terhubung', 500);
   const parts = [].concat(params.path || []);
   const m = request.method;
@@ -241,11 +255,11 @@ export async function onRequest(ctx) {
           if (buf.byteLength > 20e6) return err('PDF terlalu besar (maks 20 MB)');
           await env.TTD.put('pdf:' + id, buf);
           d.ver = (d.ver || 1) + 1;
-          if (body.resolveAll) {
-            const kor = await getKor(env, id);
-            kor.forEach(c => { if (c.status !== 'selesai') { c.status = 'selesai'; c.doneAt = new Date().toISOString(); } });
-            await putKor(env, id, kor);
-          }
+          const kor = await getKor(env, id), now = new Date().toISOString();
+          kor.forEach(c => {
+            if (c.status === 'disetujui' || (body.resolveAll && ['baru', 'diproses'].includes(c.status))) { c.status = 'selesai'; c.doneAt = now; c.doneVer = d.ver; }
+          });
+          await putKor(env, id, kor);
         }
         d.updated = new Date().toISOString();
         await putDoc(env, d);
@@ -272,7 +286,12 @@ export async function onRequest(ctx) {
       const img = body.img;
       if (typeof img !== 'string' || !img.startsWith('data:image/png;base64,') || img.length > 500000) return err('Gambar tanda tangan tidak valid');
       const rec = { img, at: new Date().toISOString(), ver: d.ver };
+      const first = !(await env.TTD.get('sig:' + id + ':' + s.key));
       await env.TTD.put('sig:' + id + ':' + s.key, JSON.stringify(rec));
+      const sigs = await getSigs(env, d), done = d.signers.filter(x => sigs[x.key] && sigs[x.key].ver === d.ver).length;
+      notify(ctx, env, origin, `✍️ ${s.name} ${first ? 'menandatangani' : 'memperbarui tanda tangan'} · ${d.title}`.slice(0, 200), {
+        Notula: d.title, Penanda_tangan: s.name + (s.role ? ' (' + s.role + ')' : ''), Waktu: wib(rec.at),
+        Progres: done + ' dari ' + d.signers.length + ' sudah menandatangani', Buka_notula: origin + '/?d=' + encodeURIComponent(id) });
       return json({ ok: true, at: rec.at });
     }
 
@@ -292,6 +311,11 @@ export async function onRequest(ctx) {
         }
         if (kor.length > 1000) return err('Koreksi terlalu banyak');
         await putKor(env, id, kor);
+        const added = kor.slice(-items.length);
+        notify(ctx, env, origin, `✏️ ${items.length} koreksi baru dari ${s.name} · ${d.title}`.slice(0, 200), {
+          Notula: d.title, Dari: s.name + (s.role ? ' (' + s.role + ')' : ''), Waktu: wib(now),
+          Koreksi: added.map((c, i) => `${i + 1}. [Hal. ${c.page}] ${c.from ? c.from + ' → ' : ''}${c.to || ''}${c.note ? ' (' + c.note + ')' : ''}`).join('\n'),
+          Tindak_lanjut: origin + '/?d=' + encodeURIComponent(id) });
         return json({ ok: true, count: items.length });
       }
       if (m === 'PATCH') {
@@ -305,7 +329,7 @@ export async function onRequest(ctx) {
           if (body.agree) c.agree.push(s.key);
         }
         if (body.status && (admin || (s && s.key === c.by && body.status === 'dibatalkan'))) {
-          c.status = ['baru', 'diproses', 'selesai', 'dibatalkan'].includes(body.status) ? body.status : c.status;
+          c.status = ['baru', 'diproses', 'disetujui', 'ditolak', 'selesai', 'dibatalkan'].includes(body.status) ? body.status : c.status;
           if (body.reply !== undefined && admin) c.reply = clean(body.reply, 800);
           c.doneAt = new Date().toISOString();
         } else if (body.reply !== undefined && admin) c.reply = clean(body.reply, 800);

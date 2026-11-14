@@ -156,7 +156,7 @@ const CATS = [
   { id: 'lain', label: '💬 Lainnya', c: '#495057' },
 ];
 const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
-const STATUS = { baru: ['Baru', 'blue'], diproses: ['Diproses', 'no'], selesai: ['Selesai ✓', 'ok'], dibatalkan: ['Dibatalkan', ''] };
+const STATUS = { baru: ['Baru', 'blue'], diproses: ['Diproses', 'no'], disetujui: ['Disetujui · menunggu revisi', 'no'], ditolak: ['Tidak disetujui', 'bad'], selesai: ['Sudah direvisi ✓', 'ok'], dibatalkan: ['Dibatalkan', ''] };
 
 const qs = new URLSearchParams(location.search);
 let DOC_ID = qs.get('d'), ME_KEY = qs.get('n'), TOK = qs.get('k'), VIEW = qs.get('v');
@@ -271,12 +271,13 @@ async function showDoc() {
   document.title = fileName('').replace(/ ?\.pdf$/, '') + ' · Tanda Tangan';
   drafts = store.get(draftKey(), []);
   app.innerHTML = `
-    <div id="meCard"></div>
     <div id="adminCard"></div>
+    <div id="guide"></div>
+    <div class="card"><h2>📄 Isi Notula</h2><p class="small" style="margin:0 0 10px">Tanda tangan muncul otomatis di kolomnya. Penanda 📍 adalah koreksi dari peserta, ketuk untuk melihat.</p><div class="pages" id="pages"></div></div>
+    <div id="meCard"></div>
     <div class="card"><div class="stat"><div class="ring" id="ring"><span id="ringTx">0%</span></div><div class="grow"><h2 style="margin:0 0 4px">Status Tanda Tangan</h2><div class="small" id="prog"></div></div></div><div class="progress"><i id="bar" style="width:0"></i></div><div id="list"></div>
       <div class="btns" style="margin-top:12px"><button class="btn sec" id="dl">⬇️ Unduh PDF bertanda tangan</button></div></div>
-    <div class="card" id="korCard"></div>
-    <div class="card"><h2>Isi Notula</h2><p class="small" style="margin:0 0 10px">Tanda tangan muncul otomatis di kolomnya. Penanda 📍 adalah koreksi dari peserta, ketuk untuk melihat.</p><div class="pages" id="pages"></div></div>`;
+    <div class="card" id="korCard"></div>`;
   $('dl').onclick = downloadPdf;
   renderStatic();
   await renderPdf($('pages'), pdfUrl());
@@ -307,18 +308,23 @@ function renderStatic() {
   }).join('');
   $('list').querySelectorAll('[data-reset]').forEach(b => b.onclick = () => resetSig(b.dataset.reset));
   // kartu pribadi
-  const m = me(), mc = $('meCard');
+  const m = me(), mc = $('meCard'), gd = $('guide');
+  gd.innerHTML = m && !sigOk(m) ? `<div class="card me"><h2 style="margin-bottom:8px">📖 Panduan singkat</h2>
+    <div class="small" style="font-size:13.5px;line-height:1.7;color:var(--ink)">1. Baca notula di bawah sampai halaman terakhir.<br>2. Ada yang keliru? Tekan <b>✏️ Ajukan koreksi</b>.<br>3. Sudah sesuai? Tekan <b>✍️ Tanda tangani</b>.</div>
+    <div class="btns" style="margin-top:10px"><button class="btn sec sm" id="toAct">⬇️ Langsung ke tombol</button></div></div>` : '';
+  if ($('toAct')) $('toAct').onclick = () => $('meCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
   if (ME_KEY && !m) mc.innerHTML = '<div class="card me"><p>Link tanda tangan tidak lengkap atau tidak berlaku. Mohon gunakan link yang dikirimkan kepada Bapak/Ibu.</p></div>';
   else if (m) {
     const ok = sigOk(m), myKor = S.kor.filter(c => c.by === m.key && c.status !== 'dibatalkan');
     mc.innerHTML = `<div class="card me"><p>${ok ? `✅ Terima kasih, ${esc(m.sapaan || 'Bapak/Ibu')} <b>${esc(m.name)}</b>. Tanda tangan ${esc(m.sapaan || 'Bapak/Ibu')} sudah tersimpan di notula (${fmt(S.sigs[m.key].at)}).`
-      : `Yth. ${esc(m.sapaan || 'Bapak/Ibu')} <b>${esc(m.name)}</b>${m.role ? ' (' + esc(m.role) + ')' : ''}, silakan membaca notula di bawah, lalu tekan tombol berikut untuk menandatangani.`}</p>
-      ${myKor.length ? `<p class="small">Bapak/Ibu telah mengirim ${myKor.length} koreksi, ${myKor.filter(c => c.status === 'selesai').length} sudah ditindaklanjuti.</p>` : ''}
+      : `Sudah selesai membaca, ${esc(m.sapaan || 'Bapak/Ibu')} <b>${esc(m.name)}</b>? Silakan pilih salah satu:`}</p>
+      ${myKor.length ? `<p class="small">Koreksi Bapak/Ibu: ${myKor.length} terkirim, ${myKor.filter(c => c.status === 'selesai').length} sudah direvisi, ${myKor.filter(c => c.status === 'ditolak').length} tidak disetujui.</p>` : ''}
       <div class="btns"><button class="btn" id="goSign">${ok ? '🔁 Ulangi tanda tangan' : '✍️ Tanda tangani sekarang'}</button><button class="btn warn" id="goKor">✏️ Ajukan koreksi</button></div></div>`;
     $('goSign').onclick = startSignFlow; $('goKor').onclick = enterKoreksi;
   } else mc.innerHTML = '';
   renderKorCard();
   updateKorbar();
+  if (ADMIN && S.admin) renderApproved();
 }
 
 // ---------------- overlays: ttd, koreksi, draft ----------------
@@ -363,8 +369,9 @@ function korItem(c, i, opts = {}) {
       ${opts.draft ? `<button class="btn sm sec" data-edit="${i}">Ubah</button><button class="btn sm danger" data-del="${i}">Hapus</button>` : ''}
       ${!opts.draft && m && c.by !== m.key && c.status !== 'selesai' ? `<button class="btn sm ${agreed ? '' : 'sec'}" data-agree="${c.id}">👍 ${agreed ? 'Setuju' : 'Saya setuju'}</button>` : ''}
       ${!opts.draft && m && c.by === m.key && c.status === 'baru' ? `<button class="btn sm danger" data-cancel="${c.id}">Batalkan</button>` : ''}
-      ${!opts.draft && ADMIN ? `<select data-st="${c.id}" style="width:auto;padding:6px 8px;font-size:12px">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === c.status ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
-        <button class="btn sm sec" data-reply="${c.id}">💬 Balas</button>` : ''}
+      ${!opts.draft && ADMIN && ['baru', 'diproses'].includes(c.status) ? `<button class="btn sm" data-approve="${c.id}">✅ Setujui</button><button class="btn sm danger" data-reject="${c.id}">❌ Tolak</button>` : ''}
+      ${!opts.draft && ADMIN && c.status === 'disetujui' ? `<button class="btn sm warn" data-uprev="1">⬆️ Unggah revisi</button>` : ''}
+      ${!opts.draft && ADMIN && c.status !== 'dibatalkan' ? `<button class="btn sm sec" data-reply="${c.id}">💬 Balas</button>` : ''}
     </div></div>`;
 }
 function bindKorButtons(root) {
@@ -378,9 +385,17 @@ function bindKorButtons(root) {
   root.querySelectorAll('[data-cancel]').forEach(b => b.onclick = async () => {
     try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: b.dataset.cancel, key: ME_KEY, k: TOK, status: 'dibatalkan' }) }); toast('Koreksi dibatalkan'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
   });
-  root.querySelectorAll('[data-st]').forEach(s => s.onchange = async () => {
-    try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: s.dataset.st, k: ADMIN, status: s.value }) }); toast('Status diperbarui'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
+  root.querySelectorAll('[data-approve]').forEach(b => b.onclick = async () => {
+    try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: b.dataset.approve, k: ADMIN, status: 'disetujui' }) }); closeSheet(); await afterChange(); openRevision(true); } catch (e) { toast('⚠️ ' + e.message); }
   });
+  root.querySelectorAll('[data-reject]').forEach(b => b.onclick = () => {
+    const c = S.kor.find(x => x.id === b.dataset.reject);
+    openSheet(`<h3>❌ Tolak koreksi</h3><p class="lead">${esc(c.from ? c.from + ' → ' : '')}${esc(c.to || c.note || '')}</p><label class="f">Alasan (akan terlihat oleh pengirim)</label><textarea id="rj" placeholder="Contoh: Sudah sesuai dengan jalannya rapat."></textarea>
+      <div class="btns" style="margin-top:10px"><button class="btn sec" onclick="closeSheet()">Batal</button><button class="btn danger" id="rjOk">Tolak koreksi</button></div>`, sh => {
+      sh.querySelector('#rjOk').onclick = async () => { try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: c.id, k: ADMIN, status: 'ditolak', reply: sh.querySelector('#rj').value }) }); closeSheet(); toast('Koreksi ditolak'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); } };
+    });
+  });
+  root.querySelectorAll('[data-uprev]').forEach(b => b.onclick = () => { closeSheet(); openRevision(false); });
   root.querySelectorAll('[data-reply]').forEach(b => b.onclick = () => {
     const c = S.kor.find(x => x.id === b.dataset.reply);
     openSheet(`<h3>💬 Balas koreksi</h3><p class="lead">${esc(c.from ? c.from + ' → ' : '')}${esc(c.to || c.note)}</p><textarea id="rp" placeholder="Contoh: Sudah diperbaiki di revisi.">${esc(c.reply || '')}</textarea>
@@ -623,7 +638,7 @@ const linkFor = s => s.short ? location.origin + '/' + s.short : location.origin
 const viewLink = () => location.origin + '/?d=' + encodeURIComponent(DOC_ID) + '&v=' + encodeURIComponent(S.admin.view || '');
 function renderAdmin() {
   const a = S.admin;
-  $('adminCard').innerHTML = `<div class="card"><h2>🛠️ Panel Admin</h2>
+  $('adminCard').innerHTML = `<div id="approvedCard"></div><div class="card"><h2>🛠️ Panel Admin</h2>
     <div class="tabs"><button class="tab on" data-t="links">🔗 Link</button><button class="tab" data-t="rev">📄 Revisi</button><button class="tab" data-t="pos">🎯 Posisi ttd</button><button class="tab" data-t="more">⚙️ Lainnya</button></div>
     <div data-p="links">${a.signers.map(s => `<div class="row"><div class="grow"><b>${esc(s.name)}</b><span class="small">${esc(s.role)}</span>
       ${s.token ? `<div class="linkbox"><input type="text" readonly value="${esc(linkFor(s))}"></div>` : '<div class="small">Link lama sudah dibagikan sebelumnya (tetap berlaku). Tekan Link baru jika ingin membuat ulang.</div>'}</div>
@@ -631,9 +646,8 @@ function renderAdmin() {
       <button class="btn sm sec" data-regen="${esc(s.key)}">Link baru</button></div></div>`).join('')}
       <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button></div>
       <div class="row"><div class="grow"><b>👁️ Link lihat saja</b><span class="small">Untuk orang yang hanya perlu membaca notula ini, tanpa tanda tangan.</span><div class="linkbox"><input type="text" readonly value="${esc(viewLink())}"></div></div><button class="btn sm" id="copyView">Salin</button></div></div>
-    <div data-p="rev" class="hidden"><p>Setelah koreksi ditindaklanjuti, unggah PDF notula versi revisi. Tanda tangan sebelumnya otomatis ditandai <b>perlu tanda tangan ulang</b>.</p>
-      <input type="file" id="revFile" accept="application/pdf"><label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:10px 0"><input type="checkbox" id="revDone" checked> Tandai semua koreksi terbuka sebagai selesai</label>
-      <div class="btns"><button class="btn" id="revUp">⬆️ Unggah revisi</button></div></div>
+    <div data-p="rev" class="hidden"><p>Unggah PDF revisi untuk menimpa notula saat ini. Link notula dan link tanda tangan tidak berubah.</p>
+      <div class="btns"><button class="btn" id="revUp">⬆️ Unggah PDF revisi</button></div></div>
     <div data-p="pos" class="hidden"><p>Atur ulang letak kolom tanda tangan pada halaman notula.</p><div class="btns"><button class="btn" id="posEdit">🎯 Buka pengatur posisi</button></div></div>
     <div data-p="more" class="hidden"><div class="btns"><a class="btn sec" style="text-decoration:none;text-align:center" href="${adminHome()}">🏠 Semua notula</a><button class="btn danger" id="delDoc">🗑️ Hapus notula ini</button></div></div></div>`;
   const root = $('adminCard');
@@ -645,12 +659,8 @@ function renderAdmin() {
   });
   $('copyView').onclick = () => copy(viewLink());
   $('copyAll').onclick = () => copy(a.signers.filter(s => s.token).map(s => `${s.name}:\n${linkFor(s)}`).join('\n\n'));
-  $('revUp').onclick = async () => {
-    const f = $('revFile').files[0]; if (!f) { toast('Pilih berkas PDF revisi dulu'); return; }
-    $('revUp').disabled = true; $('revUp').textContent = 'Mengunggah...';
-    try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, pdf: await fileB64(f), resolveAll: $('revDone').checked }) }); toast('✅ Revisi diunggah'); location.reload(); }
-    catch (e) { toast('⚠️ ' + e.message); $('revUp').disabled = false; $('revUp').textContent = '⬆️ Unggah revisi'; }
-  };
+  $('revUp').onclick = () => openRevision(false);
+  renderApproved();
   $('posEdit').onclick = () => openPlacer(S.admin.signers, pdfUrl(), async list => {
     await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, signers: list }) }); toast('✅ Posisi disimpan'); location.reload();
   });
@@ -658,6 +668,41 @@ function renderAdmin() {
     if (!confirm('Hapus notula ini beserta semua tanda tangan dan koreksinya? Tindakan ini tidak bisa dibatalkan.')) return;
     try { await api('docs/' + DOC_ID + '/admin', { method: 'DELETE', body: JSON.stringify({ k: ADMIN }) }); location.href = adminHome(); } catch (e) { toast('⚠️ ' + e.message); }
   };
+}
+function renderApproved() {
+  const el = $('approvedCard'); if (!el) return;
+  const n = S.kor.filter(c => c.status === 'disetujui').length;
+  el.innerHTML = n ? `<div class="card" style="border:0;box-shadow:0 0 0 2px #ffb703 inset,var(--sh);background:#fffbeb"><h2 style="margin-bottom:6px">📄 ${n} koreksi disetujui</h2>
+    <p class="small" style="margin:0 0 10px">Wajib unggah PDF revisi sesuai koreksi. File lama langsung tertimpa, link tidak berubah.</p>
+    <div class="btns"><button class="btn warn" id="apUp">⬆️ Unggah revisi sekarang</button></div></div>` : '';
+  if (n) $('apUp').onclick = () => openRevision(false);
+}
+// unggah revisi: menimpa PDF lama, posisi kolom ttd dideteksi ulang otomatis
+function openRevision(justApproved) {
+  const n = S.kor.filter(c => c.status === 'disetujui').length;
+  openSheet(`<div class="big-emoji">📄</div><h3 style="text-align:center">${justApproved ? 'Koreksi disetujui ✅' : 'Unggah PDF revisi'}</h3>
+    <p class="lead" style="text-align:center">${n ? `Unggah notula revisi yang sudah memuat <b>${n} koreksi disetujui</b>.` : 'Unggah notula versi terbaru.'} File lama langsung tertimpa, link notula dan link tanda tangan tetap sama. Tanda tangan sebelumnya perlu diulang pada versi baru.</p>
+    <label class="btn" style="display:block;text-align:center;cursor:pointer">📎 Pilih PDF revisi<input type="file" id="rvF" accept="application/pdf" style="display:none"></label>
+    <div class="small" id="rvMsg" style="margin-top:10px;text-align:center"></div>
+    <div class="btns" style="margin-top:10px"><button class="btn sec" id="rvLater">${justApproved ? 'Nanti, setujui koreksi lain dulu' : 'Batal'}</button></div>`, sh => {
+    sh.querySelector('#rvLater').onclick = closeSheet;
+    sh.querySelector('#rvF').onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      const msg = sh.querySelector('#rvMsg'); msg.innerHTML = '<span class="spin" style="display:inline-block;vertical-align:middle;width:14px;height:14px"></span> Membaca PDF dan menyesuaikan kolom tanda tangan...';
+      try {
+        let signers = null;
+        try {
+          const pages = await analyzePdf(URL.createObjectURL(f));
+          const found = detectSigners(pages, S.admin.signers.map(x => ({ key: x.key, name: x.name, role: x.role })));
+          signers = S.admin.signers.map(x => { const d = found.find(y => y.key === x.key); const src = d || x; return { key: x.key, name: x.name, role: x.role, page: src.page, x: src.x, y: src.y, w: src.w, h: src.h }; });
+        } catch (er) { signers = null; }
+        msg.textContent = 'Mengunggah dan menimpa file lama...';
+        await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, pdf: await fileB64(f), ...(signers ? { signers } : {}) }) });
+        closeSheet(); confetti(); toast('✅ Revisi terpasang. Link tetap sama.');
+        setTimeout(() => location.reload(), 1200);
+      } catch (er) { msg.textContent = '⚠️ Gagal mengunggah: ' + er.message; }
+    };
+  });
 }
 const waText = s => `Selamat ${salam()} ${s.sapaan || 'Bapak/Ibu'} ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`;
 async function resetSig(key) {
