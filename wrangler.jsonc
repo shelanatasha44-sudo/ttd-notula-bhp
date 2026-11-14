@@ -2,6 +2,9 @@
   "name": "ttd-notula-bhp",
   "main": "src/worker.js",
   "compatibility_date": "2025-09-01",
+  // Domain sendiri (lebih jarang diblokir provider) + alamat workers.dev tetap aktif
+  "routes": [{ "pattern": "notulabhp.my.id", "custom_domain": true }],
+  "workers_dev": true,
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
