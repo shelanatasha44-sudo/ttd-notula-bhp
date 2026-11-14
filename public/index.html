@@ -953,7 +953,8 @@ function gapAbove(p, l, x0, x1) {
 function detectSigners(pages, candidates) {
   // mulai dari bagian penutup ("Demikian ...") agar nama di daftar hadir/isi tidak ikut
   let sp = 0, sl = 0;
-  pages.forEach((p, pi) => p.lines.forEach((l, li) => { if (/demikian|mengetahui|disahkan|notulen/i.test(l.text)) { if (pi > sp || (pi === sp && li > sl)) { sp = pi; sl = li; } } }));
+  pages.forEach((p, pi) => p.lines.forEach((l, li) => { if (/^\s*demikian\b/i.test(l.text)) { if (pi > sp || (pi === sp && li > sl)) { sp = pi; sl = li; } } }));
+  if (!sp && !sl) pages.forEach((p, pi) => p.lines.forEach((l, li) => { if (/mengetahui|disahkan|notulen/i.test(l.text) && (pi > sp || (pi === sp && li > sl))) { sp = pi; sl = li; } }));
   if (!sp && !sl) sp = pages.length - 1;
   const found = [];
   for (const cand of candidates) {
@@ -963,7 +964,7 @@ function detectSigners(pages, candidates) {
       const p = pages[pi];
       p.lines.forEach((l, li) => {
         if (pi === sp && li < sl) return;
-        const at = l.norm.indexOf(key); if (at < 0) return;
+        const at = l.norm.indexOf(key); if (at < 0 || hit) return; // pakai kemunculan pertama setelah penutup (blok ttd), bukan keterangan foto
         hit = { pi, l, x0: l.chars[at].x, x1: l.chars[at + key.length - 1].x2 };
       });
     }
