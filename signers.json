@@ -1,0 +1,72 @@
+[
+ {
+  "key": "syuhada",
+  "name": "Syuhada",
+  "role": "Kurator Keperdataan Ahli Madya",
+  "page": 8,
+  "x": 0.17289654132994856,
+  "y": 0.21314048725191434,
+  "w": 0.285568403417864,
+  "h": 0.06414141362880343
+ },
+ {
+  "key": "syafriadi",
+  "name": "Syafriadi Lubis",
+  "role": "Kepala Balai Harta Peninggalan Medan",
+  "page": 8,
+  "x": 0.5620322429168726,
+  "y": 0.21314048725191434,
+  "w": 0.285568403417864,
+  "h": 0.06414141362880343
+ },
+ {
+  "key": "elsintha",
+  "name": "Elsintha Damayanti",
+  "role": "Tim BHP Medan",
+  "page": 8,
+  "x": 0.48748208328121506,
+  "y": 0.4246788456204296,
+  "w": 0.18981899756599196,
+  "h": 0.03444631472657962
+ },
+ {
+  "key": "shela",
+  "name": "Shela Natasha",
+  "role": "Tim BHP Medan",
+  "page": 8,
+  "x": 0.7058579211889935,
+  "y": 0.4733788078200767,
+  "w": 0.18981899756599196,
+  "h": 0.03444631472657962
+ },
+ {
+  "key": "andre",
+  "name": "Andre Yosua Surbakti",
+  "role": "Tim BHP Medan",
+  "page": 8,
+  "x": 0.48748208328121506,
+  "y": 0.5220787700197238,
+  "w": 0.18981899756599196,
+  "h": 0.03444631472657962
+ },
+ {
+  "key": "annisa",
+  "name": "Annisa Dwi Marina",
+  "role": "Tim BHP Medan",
+  "page": 8,
+  "x": 0.7058579211889935,
+  "y": 0.5707787322193708,
+  "w": 0.18981899756599196,
+  "h": 0.03444631472657962
+ },
+ {
+  "key": "yusril",
+  "name": "Yusril Ihza Mahendra",
+  "role": "Tim BHP Medan",
+  "page": 8,
+  "x": 0.48748208328121506,
+  "y": 0.6194786219212178,
+  "w": 0.18981899756599196,
+  "h": 0.03444631472657962
+ }
+]
