@@ -120,6 +120,24 @@ canvas#cv{width:100%;height:230px;border:1.5px dashed #9aa4b5;border-radius:12px
 .hello{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top));transform:translate(-50%,-12px);background:#fff;color:var(--ink);border:1px solid var(--line);border-left:5px solid var(--hl);border-radius:14px;padding:12px 16px;font-size:15px;line-height:1.45;box-shadow:0 10px 30px rgba(15,47,92,.22);z-index:58;opacity:0;transition:opacity .35s,transform .35s;max-width:92vw;width:max-content;pointer-events:none}
 .hello.on{opacity:1;transform:translate(-50%,0)}
 .hello b{color:var(--brand)}
+.actbar{position:fixed;left:8px;right:8px;bottom:calc(8px + env(safe-area-inset-bottom));z-index:19;display:none;gap:8px;padding:8px;border-radius:20px;background:rgba(255,255,255,.96);backdrop-filter:blur(8px);box-shadow:0 10px 30px rgba(20,33,61,.22);max-width:640px;margin:0 auto}
+.actbar.on{display:flex;animation:up .3s}
+.actbar .btn{flex:1;padding:14px 10px;font-size:15px;line-height:1.2}
+.actbar .btn small{display:block;font-size:11px;font-weight:600;opacity:.85;margin-top:2px}
+body.hasbar main{padding-bottom:110px}
+body.koreksi .actbar{display:none}
+body.coaching .actbar{z-index:51;box-shadow:0 0 0 4px #ffd166,0 10px 30px rgba(0,0,0,.3)}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.step{border-radius:14px;padding:10px 8px;text-align:center;font-size:12.5px;line-height:1.35;font-weight:600;background:#f3f6fb}
+.step i{display:block;font-style:normal;font-size:26px;margin-bottom:4px}
+.step.y{background:#fff6da}.step.b{background:#e6eefb}
+.coach{position:fixed;inset:0;z-index:50;background:rgba(10,20,40,.55);display:flex;align-items:flex-end;justify-content:center;padding:0 16px calc(96px + env(safe-area-inset-bottom));animation:fade .2s}
+.coach .bub{background:#fff;border-radius:18px;padding:16px;max-width:420px;width:100%;text-align:center;position:relative;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+.coach .bub p{margin:0 0 10px;font-size:15px;line-height:1.55}
+.coach .hand{position:absolute;left:50%;bottom:-46px;font-size:38px;transform:translateX(-50%);animation:poke 1s ease-in-out infinite}
+@keyframes poke{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,10px)}}
+.tag{display:inline-block;padding:2px 8px;border-radius:8px;font-weight:800}
+.tag.y{background:#ffd166;color:#3b2a00}.tag.b{background:#2457b8;color:#fff}
 .hidden{display:none!important}
 </style>
 </head>
@@ -127,6 +145,7 @@ canvas#cv{width:100%;height:230px;border:1.5px dashed #9aa4b5;border-radius:12px
 <header><div class="brand"><img src="/logo.png" alt="Logo Kementerian Hukum"><span>Kementerian Hukum Republik Indonesia<br><b>Balai Harta Peninggalan Medan</b></span></div><h1 id="hTitle">Tanda Tangan Notula</h1><p id="hSub">Balai Harta Peninggalan Medan</p></header>
 <main id="app"><div class="loading"><div class="spin"></div>Memuat...</div></main>
 
+<div class="actbar" id="actbar"><button class="btn warn" id="abKor">✏️ Ada yang salah<small>ajukan koreksi</small></button><button class="btn" id="abSign">✍️ Sudah pas<small>tanda tangan</small></button></div>
 <div class="korbar" id="korbar">
   <div class="t" id="kbTip">✏️ <b>Mode koreksi.</b> Ketuk bagian yang perlu dikoreksi. Aktifkan Stabilo untuk menandai satu area.</div>
   <div class="btns" style="margin-bottom:8px"><button class="btn sec" id="kbMode">🖍️ Stabilo: mati</button></div>
@@ -224,6 +243,18 @@ function lazyRender(cv, page, vp) {
 }
 
 
+// ---------------- petunjuk pertama kali: tunjuk tombol di bawah ----------------
+function coach() {
+  if ($('modal').classList.contains('on') || document.body.classList.contains('koreksi')) return;
+  const m = me(), sp = esc(m.sapaan || 'Bapak/Ibu');
+  const el = document.createElement('div'); el.className = 'coach';
+  el.innerHTML = `<div class="bub"><p>Tombolnya selalu ada di bawah ya, ${sp} 😊</p>
+    <p style="font-size:14px"><span class="tag y">✏️ Kuning</span> kalau ada yang mau dikoreksi<br><span class="tag b">✍️ Biru</span> kalau sudah pas, langsung tanda tangan</p>
+    <button class="btn" style="width:100%">Siap, mengerti 👍</button><div class="hand">👇</div></div>`;
+  document.body.appendChild(el); document.body.classList.add('coaching');
+  const done = () => { store.set('coach1', true); el.remove(); document.body.classList.remove('coaching'); };
+  el.querySelector('button').onclick = done; el.addEventListener('click', e => { if (e.target === el) done(); });
+}
 // ---------------- avatar inisial ----------------
 const AVC = ['#2457b8', '#7048e8', '#0ca678', '#e8590c', '#c2255c', '#1098ad', '#5f3dc4', '#d9480f'];
 function avatar(name, done) {
@@ -286,7 +317,7 @@ async function showDoc() {
   await renderPdf($('pages'), pdfUrl());
   renderOverlays();
   if (ADMIN) loadAdmin();
-  if (me()) greet(me());
+  if (me()) { greet(me()); if (!sigOk(me()) && !store.get('coach1', false)) setTimeout(coach, 2300); }
   if (location.hash === '#ttd' && me()) startSignFlow();
   setInterval(refresh, 30000);
 }
@@ -313,10 +344,16 @@ function renderStatic() {
   $('list').querySelectorAll('[data-reset]').forEach(b => b.onclick = () => resetSig(b.dataset.reset));
   // kartu pribadi
   const m = me(), mc = $('meCard'), gd = $('guide');
-  gd.innerHTML = m && !sigOk(m) ? `<div class="card me"><h2 style="margin-bottom:8px">📖 Panduan singkat</h2>
-    <div class="small" style="font-size:13.5px;line-height:1.7;color:var(--ink)">1. Baca notula di bawah sampai halaman terakhir.<br>2. Ada yang keliru? Tekan <b>✏️ Ajukan koreksi</b>.<br>3. Sudah sesuai? Tekan <b>✍️ Tanda tangani</b>.</div>
-    <div class="btns" style="margin-top:10px"><button class="btn sec sm" id="toAct">⬇️ Langsung ke tombol</button></div></div>` : '';
-  if ($('toAct')) $('toAct').onclick = () => $('meCard').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  gd.innerHTML = m && !sigOk(m) ? `<div class="card me"><h2 style="margin-bottom:6px">🧭 Cukup 3 langkah</h2>
+    <div class="steps"><div class="step"><i>📖</i>Baca notula sampai habis</div><div class="step y"><i>✏️</i>Ada yang salah?<br>Tekan <span class="tag y">kuning</span></div><div class="step b"><i>✍️</i>Sudah pas?<br>Tekan <span class="tag b">biru</span></div></div>
+    <p class="small" style="margin:10px 0 0;text-align:center">👇 Kedua tombol selalu ada di bawah layar</p></div>` : '';
+  // tombol tetap di bawah layar
+  const ab = $('actbar');
+  if (m) {
+    ab.classList.add('on'); document.body.classList.add('hasbar');
+    $('abSign').innerHTML = sigOk(m) ? '🔁 Ulangi ttd<small>sudah ditandatangani ✓</small>' : '✍️ Sudah pas<small>tanda tangan</small>';
+    $('abKor').onclick = enterKoreksi; $('abSign').onclick = startSignFlow;
+  } else { ab.classList.remove('on'); document.body.classList.remove('hasbar'); }
   if (ME_KEY && !m) mc.innerHTML = '<div class="card me"><p>Link tanda tangan tidak lengkap atau tidak berlaku. Mohon gunakan link yang dikirimkan kepada Bapak/Ibu.</p></div>';
   else if (m) {
     const ok = sigOk(m), myKor = S.kor.filter(c => c.by === m.key && c.status !== 'dibatalkan');
