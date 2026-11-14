@@ -230,12 +230,15 @@ export async function onRequest(ctx) {
     if ((sub === '' || sub === 'pdf') && m === 'GET' && !(await canView(d, k, v)))
       return err('Notula ini hanya dapat dibuka melalui link yang dikirimkan kepada Bapak/Ibu', 403);
     if (!sub && m === 'GET') {
-      return json({ doc: publicDoc(d), sigs: await getSigs(env, d), koreksi: await getKor(env, id) });
+      const body = JSON.stringify({ doc: publicDoc(d), sigs: await getSigs(env, d), koreksi: await getKor(env, id) });
+      const etag = '"' + (await sha256(body)).slice(0, 24) + '"';
+      if (request.headers.get('if-none-match') === etag) return new Response(null, { status: 304, headers: { etag, 'cache-control': 'private, no-cache' } });
+      return new Response(body, { headers: { 'content-type': 'application/json; charset=utf-8', etag, 'cache-control': 'private, no-cache' } });
     }
     if (sub === 'pdf' && m === 'GET') {
       const pdf = await env.TTD.get('pdf:' + id, 'arrayBuffer');
       if (!pdf) return err('PDF tidak ditemukan', 404);
-      return new Response(pdf, { headers: { 'content-type': 'application/pdf', 'cache-control': 'no-store' } });
+      return new Response(pdf, { headers: { 'content-type': 'application/pdf', 'cache-control': url.searchParams.get('ver') ? 'private, max-age=31536000, immutable' : 'no-store' } });
     }
 
     // ---------- admin: detail (dengan link), ubah, revisi PDF, hapus ----------
@@ -289,7 +292,7 @@ export async function onRequest(ctx) {
       const first = !(await env.TTD.get('sig:' + id + ':' + s.key));
       await env.TTD.put('sig:' + id + ':' + s.key, JSON.stringify(rec));
       const sigs = await getSigs(env, d), done = d.signers.filter(x => sigs[x.key] && sigs[x.key].ver === d.ver).length;
-      const nt = notify(env, `✍️ ${s.name} ${first ? 'menandatangani' : 'memperbarui tanda tangan'} · ${d.title}`.slice(0, 200), {
+      const nt = notify(env, (done === d.signers.length ? `🎉 Lengkap ${done}/${done} ttd · ` : '') + `✍️ ${s.name} ${first ? 'menandatangani' : 'memperbarui tanda tangan'} · ${d.title}`, {
         Notula: d.title, Penanda_tangan: s.name + (s.role ? ' (' + s.role + ')' : ''), Waktu: wib(rec.at),
         Progres: done + ' dari ' + d.signers.length + ' sudah menandatangani', Buka_notula: origin + '/?d=' + encodeURIComponent(id) });
       return json({ ok: true, at: rec.at, notify: nt });

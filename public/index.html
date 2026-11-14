@@ -202,7 +202,7 @@ async function renderPdf(container, url) {
   container.innerHTML = '<div class="loading"><div class="spin"></div>Memuat notula...</div>';
   PDF = await pdfjsLib.getDocument({ url }).promise;
   container.innerHTML = ''; PAGES = [];
-  const width = Math.min(container.clientWidth || 800, 860), dpr = Math.min(2.5, Math.max(1.5, devicePixelRatio || 1));
+  const width = Math.min(container.clientWidth || 800, 860), dpr = Math.min(2, Math.max(1.5, devicePixelRatio || 1));
   for (let i = 1; i <= PDF.numPages; i++) {
     const page = await PDF.getPage(i);
     const vp1 = page.getViewport({ scale: 1 }), scale = width / vp1.width * dpr, vp = page.getViewport({ scale });
@@ -259,7 +259,10 @@ const me = () => S.doc && ME_KEY && TOK ? S.doc.signers.find(s => s.key === ME_K
 const sigOk = s => S.sigs[s.key] && S.sigs[s.key].ver === S.doc.ver;
 
 async function loadDoc() {
-  const j = await api('docs/' + encodeURIComponent(DOC_ID) + '?' + authQS());
+  const r = await fetch('/api/docs/' + encodeURIComponent(DOC_ID) + '?' + authQS(), { cache: 'no-cache' });
+  if (r.status === 304 && S.doc) return;
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
   S.doc = j.doc; S.sigs = j.sigs || {}; S.kor = j.koreksi || [];
 }
 
@@ -285,9 +288,10 @@ async function showDoc() {
   if (ADMIN) loadAdmin();
   if (me()) greet(me());
   if (location.hash === '#ttd' && me()) startSignFlow();
-  setInterval(refresh, 25000);
+  setInterval(refresh, 30000);
 }
 async function refresh() {
+  if (S._busy) return;
   if (document.hidden || $('modal').classList.contains('on') || document.body.classList.contains('koreksi')) return;
   const oldVer = S.doc.ver;
   try { await loadDoc(); } catch (e) { return; }
@@ -654,7 +658,7 @@ function renderAdmin() {
       ${s.token ? `<div class="linkbox"><input type="text" readonly value="${esc(linkFor(s))}"></div>` : '<div class="small">Link lama sudah dibagikan sebelumnya (tetap berlaku). Tekan Link baru jika ingin membuat ulang.</div>'}</div>
       <div class="btns" style="flex-direction:column;flex:none">${s.token ? `<button class="btn sm" data-copy="${esc(s.key)}">Salin</button><a class="btn sm sec" style="text-decoration:none;text-align:center" target="_blank" href="https://wa.me/?text=${encodeURIComponent(waText(s))}">WA</a>` : ''}
       <button class="btn sm sec" data-regen="${esc(s.key)}">Link baru</button></div></div>`).join('')}
-      <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button></div>
+      <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button><button class="btn warn" id="copyRemind">🔔 Salin pengingat yang belum ttd</button></div>
       <div class="row"><div class="grow"><b>👁️ Link lihat saja</b><span class="small">Untuk orang yang hanya perlu membaca notula ini, tanpa tanda tangan.</span><div class="linkbox"><input type="text" readonly value="${esc(viewLink())}"></div></div><button class="btn sm" id="copyView">Salin</button></div></div>
     <div data-p="rev" class="hidden"><p>Unggah PDF revisi untuk menimpa notula saat ini. Link notula dan link tanda tangan tidak berubah.</p>
       <div class="btns"><button class="btn" id="revUp">⬆️ Unggah PDF revisi</button></div></div>
@@ -668,6 +672,11 @@ function renderAdmin() {
     try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, regenerate: b.dataset.regen }) }); toast('🔗 Link baru dibuat'); loadAdmin(); } catch (e) { toast('⚠️ ' + e.message); }
   });
   $('copyView').onclick = () => copy(viewLink());
+  $('copyRemind').onclick = () => {
+    const left = a.signers.filter(s => s.token && !sigOk(s));
+    if (!left.length) return toast('🎉 Semua sudah menandatangani');
+    copy(`Selamat ${salam()} Bapak/Ibu, mohon izin mengingatkan untuk menandatangani ${S.doc.title} melalui link masing-masing:\n\n` + left.map(s => `${s.name}:\n${linkFor(s)}`).join('\n\n') + '\n\nTerima kasih 🙏');
+  };
   $('copyAll').onclick = () => copy(a.signers.filter(s => s.token).map(s => `${s.name}:\n${linkFor(s)}`).join('\n\n'));
   $('revUp').onclick = () => openRevision(false);
   $('ntTest').onclick = async () => {
