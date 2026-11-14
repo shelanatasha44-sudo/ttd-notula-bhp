@@ -8,7 +8,7 @@
     "run_worker_first": ["/api/*", "/ttd*"]
   },
   // PDF notula awal dibundel sebagai data (tidak bisa diunduh publik)
-  "rules": [{ "type": "Data", "globs": ["**/*.pdf"], "fallthrough": true }],
+  "rules": [{ "type": "Data", "globs": ["**/*.pdf", "**/*.png"], "fallthrough": true }],
   // KV untuk menyimpan notula, tanda tangan, dan koreksi.
   // Tanpa "id": wrangler memakai binding TTD yang sudah ada di Worker, atau membuatnya otomatis saat deploy.
   "kv_namespaces": [{ "binding": "TTD" }]

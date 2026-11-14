@@ -1,5 +1,6 @@
 // API Tanda Tangan & Koreksi Notula BHP Medan (Cloudflare Worker, KV binding: TTD)
 import { SEEDS } from './seeds.js';
+import STEMPEL from './seed/stempel.png'; // stempel Kepala BHP, hanya dikirim ke admin
 //
 // Kunci KV:
 //   doc:<id>            metadata notula (judul, penanda tangan, posisi kotak ttd, versi)
@@ -216,6 +217,10 @@ export async function onRequest(ctx) {
     if (parts[0] === 'notify-test' && m === 'GET') {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);
       return json({ notify: notify(env, '🔔 Tes notifikasi web tanda tangan notula', { Pesan: 'Jika email ini masuk, notifikasi koreksi dan tanda tangan sudah aktif.', Waktu: wib(new Date().toISOString()) }) });
+    }
+    if (parts[0] === 'stempel' && m === 'GET') {
+      if (!(await isAdmin(k))) return err('Khusus admin', 403);
+      return new Response(STEMPEL, { headers: { 'content-type': 'image/png', 'cache-control': 'private, no-store' } });
     }
     if (parts[0] === 'pegawai' && m === 'GET') {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);

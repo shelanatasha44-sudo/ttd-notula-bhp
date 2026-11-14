@@ -667,15 +667,31 @@ async function downloadPdf() {
     await loadPdfLib(); const { PDFDocument } = PDFLib;
     const pdf = await PDFDocument.load(await (await fetch(pdfUrl(), { cache: 'no-store' })).arrayBuffer());
     const pages = pdf.getPages(); let n = 0;
+    const all = S.doc.signers.length && S.doc.signers.every(sigOk);
+    const kepala = S.doc.signers.find(s => /kepala balai/i.test(s.role || ''));
+    let stamp = null;
+    if (ADMIN && all && kepala) {
+      const r = await fetch('/api/stempel?k=' + encodeURIComponent(ADMIN), { cache: 'no-store' });
+      if (r.ok) stamp = await pdf.embedPng(await r.arrayBuffer());
+    }
     for (const s of S.doc.signers.filter(sigOk)) {
       const pg = pages[s.page - 1]; if (!pg) continue; const { width: W, height: H } = pg.getSize();
       const png = await pdf.embedPng(S.sigs[s.key].img); const bw = s.w * W, bh = s.h * H, sc = Math.min(bw / png.width, 1.65 * bh / png.height);
-      const dw = png.width * sc, dh = png.height * sc; pg.drawImage(png, { x: s.x * W + (bw - dw) / 2, y: H - (s.y * H + bh), width: dw, height: dh }); n++;
+      const dw = png.width * sc, dh = png.height * sc, dx = s.x * W + (bw - dw) / 2, dy = H - (s.y * H + bh);
+      if (stamp && s === kepala) {
+        // stempel menimpa ttd Kepala BHP: pusat sedikit di kiri tengah ttd, garis ttd tetap di atas stempel
+        const D = Math.max(95, Math.min(118, dw * 0.8));
+        pg.drawImage(stamp, { x: dx + dw * 0.42 - D / 2, y: dy + dh * 0.5 - D / 2, width: D, height: D, opacity: 0.9 });
+      }
+      pg.drawImage(png, { x: dx, y: dy, width: dw, height: dh }); n++;
     }
     pdf.setTitle(S.doc.title);
     const blob = new Blob([await pdf.save()], { type: 'application/pdf' }), a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = fileName('(Bertanda Tangan)');
-    document.body.appendChild(a); a.click(); a.remove(); toast('📄 PDF dibuat (' + n + ' dari ' + S.doc.signers.length + ' tanda tangan)');
+    a.href = URL.createObjectURL(blob); a.download = fileName(stamp ? '(Final Bertanda Tangan dan Stempel)' : '(Bertanda Tangan)');
+    document.body.appendChild(a); a.click(); a.remove();
+    if (stamp) toast('📄 PDF final dengan stempel Kepala BHP berhasil dibuat ✅', 4000);
+    else if (ADMIN && !all) toast('📄 PDF dibuat tanpa stempel. Belum ttd: ' + S.doc.signers.filter(s => !sigOk(s)).map(s => s.name).join(', '), 6000);
+    else toast('📄 PDF dibuat (' + n + ' dari ' + S.doc.signers.length + ' tanda tangan)');
   } catch (e) { toast('⚠️ Gagal membuat PDF: ' + e.message); }
   b.disabled = false; b.textContent = t;
 }
