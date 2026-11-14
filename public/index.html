@@ -2,286 +2,689 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tanda Tangan Notula Rapat Monitoring Lanjutan Pengampuan, 13 November 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
+<meta name="theme-color" content="#0f2f5c">
+<title>Tanda Tangan Notula · BHP Medan</title>
 <style>
-:root{--ink:#1d2433;--muted:#5b6475;--line:#dfe3ea;--bg:#f4f6f9;--brand:#0f2f5c;--ok:#1f7a4d;--warn:#a15c00}
+:root{--ink:#1d2433;--muted:#5b6475;--line:#dfe3ea;--bg:#f2f4f8;--brand:#0f2f5c;--brand2:#1f4f93;--ok:#1f7a4d;--warn:#b26a00;--bad:#9b1c1c;--hl:#ffd84d}
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);-webkit-text-size-adjust:100%}
-header{background:var(--brand);color:#fff;padding:14px 16px}
+html,body{margin:0}
+body{font-family:Arial,Helvetica,sans-serif;color:var(--ink);background:var(--bg);-webkit-text-size-adjust:100%;padding-bottom:env(safe-area-inset-bottom)}
+header{background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;padding:16px 16px calc(14px);padding-top:calc(16px + env(safe-area-inset-top))}
 header h1{font-size:16px;margin:0 0 4px;line-height:1.35}
 header p{margin:0;font-size:13px;opacity:.85}
-main{max-width:820px;margin:0 auto;padding:14px}
-.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px}
+main{max-width:860px;margin:0 auto;padding:14px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:14px}
 .card h2{font-size:15px;margin:0 0 10px}
-.me{border:2px solid var(--brand)}
-.me p{margin:0 0 12px;font-size:14px;line-height:1.5}
-.btn{appearance:none;border:0;border-radius:8px;padding:12px 16px;font-size:15px;font-weight:bold;cursor:pointer;background:var(--brand);color:#fff}
+.card.me{border:2px solid var(--brand)}
+.card p{font-size:14px;line-height:1.55;margin:0 0 12px}
+.btn{appearance:none;border:0;border-radius:10px;padding:12px 16px;font-size:15px;font-weight:bold;cursor:pointer;background:var(--brand);color:#fff;font-family:inherit;transition:transform .08s}
+.btn:active{transform:scale(.97)}
 .btn.sec{background:#e8ecf2;color:var(--ink)}
-.btn.danger{background:#fbe9e9;color:#9b1c1c;padding:6px 10px;font-size:12px}
-.btn:disabled{opacity:.5}
+.btn.warn{background:#fff3d6;color:#7a4b00}
+.btn.sm{padding:7px 10px;font-size:12px;border-radius:8px}
+.btn.danger{background:#fbe9e9;color:var(--bad)}
+.btn:disabled{opacity:.45}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.btns .btn{flex:1 1 auto}
 .row{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
-.row:first-of-type{border-top:0}
-.row .who{flex:1;min-width:0}
-.row .who b{display:block;font-size:14px}
-.row .who span{font-size:12px;color:var(--muted)}
-.row img{height:34px;max-width:110px;object-fit:contain}
-.st{font-size:12px;font-weight:bold;white-space:nowrap}
-.st.ok{color:var(--ok)}.st.no{color:var(--warn)}
-.prog{font-size:13px;color:var(--muted);margin:-4px 0 8px}
-.pages img.pg{width:100%;display:block;background:#fff}
-.page{position:relative;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.row:first-child{border-top:0}
+.grow{flex:1;min-width:0}
+.row b{display:block;font-size:14px}
+.small{font-size:12px;color:var(--muted)}
+.row img.sg{height:34px;max-width:110px;object-fit:contain}
+.pill{font-size:11px;font-weight:bold;padding:3px 8px;border-radius:99px;white-space:nowrap;background:#eef1f6;color:var(--muted)}
+.pill.ok{background:#e3f4ea;color:var(--ok)}.pill.no{background:#fff1dc;color:var(--warn)}.pill.bad{background:#fbe9e9;color:var(--bad)}.pill.blue{background:#e6eefb;color:var(--brand2)}
+.progress{height:8px;background:#e8ecf2;border-radius:99px;overflow:hidden;margin:4px 0 10px}
+.progress i{display:block;height:100%;background:linear-gradient(90deg,#2a9d62,#57c88a);transition:width .5s}
+input[type=text],textarea,select{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid #cdd3dd;border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:70px;resize:vertical}
+label.f{display:block;font-size:12px;font-weight:bold;color:var(--muted);margin:10px 0 4px}
+.pages{position:relative}
+.page{position:relative;margin:0 0 14px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.15);border-radius:2px;overflow:hidden;touch-action:pan-y}
+.page canvas{display:block;width:100%;height:auto}
+.page .ov{position:absolute;inset:0}
+.pgno{position:absolute;right:6px;bottom:6px;font-size:10px;background:rgba(15,47,92,.75);color:#fff;padding:2px 6px;border-radius:6px}
 .sig{position:absolute;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
 .sig img{max-width:100%;max-height:100%}
-.note{font-size:12px;color:var(--muted);line-height:1.5}
-.msg{font-size:13px;margin-top:8px}
-.msg.err{color:#9b1c1c}.msg.ok{color:var(--ok)}
-#pad{position:fixed;inset:0;background:rgba(10,20,40,.55);display:none;align-items:flex-end;justify-content:center;z-index:9}
-#pad.on{display:flex}
-.sheet{background:#fff;width:100%;max-width:640px;border-radius:14px 14px 0 0;padding:14px 14px calc(14px + env(safe-area-inset-bottom))}
-.sheet h3{margin:0 0 4px;font-size:16px}
-.sheet p{margin:0 0 10px;font-size:13px;color:var(--muted)}
-canvas{width:100%;height:230px;border:1.5px dashed #9aa4b5;border-radius:10px;touch-action:none;background:#fff;display:block}
-.acts{display:flex;gap:8px;margin-top:10px}
-.acts .btn{flex:1}
+.sbox{position:absolute;border:2px dashed var(--brand2);background:rgba(31,79,147,.08);border-radius:4px;display:flex;align-items:flex-start;justify-content:flex-start;font-size:10px;color:var(--brand2);font-weight:bold;padding:2px 4px;touch-action:none;cursor:move}
+.sbox.on{border-style:solid;background:rgba(31,79,147,.18)}
+.sbox .rz{position:absolute;right:-7px;bottom:-7px;width:16px;height:16px;border-radius:50%;background:var(--brand2);border:2px solid #fff}
+.pin{position:absolute;transform:translate(-50%,-100%);width:28px;height:34px;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3));animation:drop .35s cubic-bezier(.2,1.6,.4,1)}
+.pin span{position:absolute;inset:0 0 6px 0;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:block}
+.pin b{position:absolute;top:5px;left:0;right:0;text-align:center;color:#fff;font-size:12px}
+.pin.done{opacity:.55}
+.mark{position:absolute;border-radius:3px;pointer-events:auto;cursor:pointer;mix-blend-mode:multiply}
+.mark.draft{outline:2px dashed rgba(0,0,0,.35)}
+@keyframes drop{from{transform:translate(-50%,-160%) scale(.4);opacity:0}to{transform:translate(-50%,-100%) scale(1);opacity:1}}
+.korbar{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#1b2b4d;color:#fff;padding:10px 12px calc(10px + env(safe-area-inset-bottom));box-shadow:0 -4px 14px rgba(0,0,0,.25);display:none}
+.korbar.on{display:block;animation:up .25s}
+.korbar .t{font-size:13px;margin-bottom:8px;line-height:1.4}
+.korbar .btn{padding:10px 12px;font-size:14px}
+@keyframes up{from{transform:translateY(100%)}to{transform:none}}
+body.koreksi .page{outline:3px solid var(--hl);cursor:crosshair;touch-action:pan-y}
+body.koreksi.stabilo .page{touch-action:none;outline-color:#ff922b}
+body.koreksi main{padding-bottom:140px}
+.modal{position:fixed;inset:0;background:rgba(10,20,40,.55);display:none;align-items:flex-end;justify-content:center;z-index:40}
+.modal.on{display:flex;animation:fade .15s}
+@keyframes fade{from{opacity:0}}
+.sheet{background:#fff;width:100%;max-width:640px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom));max-height:92vh;overflow:auto;animation:up .22s}
+.sheet h3{margin:0 0 6px;font-size:17px}
+.sheet .lead{margin:0 0 12px;font-size:14px;color:var(--muted);line-height:1.5}
+.big-emoji{font-size:44px;text-align:center;margin:4px 0 6px}
+.choice{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.choice .btn{text-align:left;padding:14px 16px;font-size:15px;display:flex;gap:12px;align-items:center}
+.choice .btn small{display:block;font-weight:normal;font-size:12px;opacity:.8;margin-top:2px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid #cdd3dd;background:#fff;border-radius:99px;padding:7px 11px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--ink)}
+.chip.on{border-color:var(--c,#1f4f93);background:var(--c,#1f4f93);color:#fff}
+canvas#cv{width:100%;height:230px;border:1.5px dashed #9aa4b5;border-radius:12px;touch-action:none;background:#fff linear-gradient(transparent 75%,#eef1f6 75%,#eef1f6 calc(75% + 1px),transparent calc(75% + 1px));display:block}
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);background:#1b2b4d;color:#fff;padding:10px 16px;border-radius:99px;font-size:14px;z-index:60;box-shadow:0 4px 14px rgba(0,0,0,.25);opacity:0;transition:opacity .25s,top .25s;pointer-events:none;max-width:92vw;text-align:center}
+.toast.on{opacity:1}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:55}
+.kitem{border:1px solid var(--line);border-left:5px solid var(--c);border-radius:10px;padding:10px;margin-bottom:8px;background:#fff}
+.kitem .h{display:flex;gap:8px;align-items:center;margin-bottom:4px;flex-wrap:wrap}
+.kitem .num{width:22px;height:22px;border-radius:50%;background:var(--c);color:#fff;font-size:12px;font-weight:bold;display:flex;align-items:center;justify-content:center;flex:none}
+.kitem .tx{font-size:14px;line-height:1.5}
+.kitem del{color:var(--bad)}
+.kitem ins{color:var(--ok);text-decoration:none;font-weight:bold}
+.reply{font-size:13px;background:#f3f6fb;border-radius:8px;padding:6px 8px;margin-top:6px}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:16px 0}
+.linkbox{display:flex;gap:6px;align-items:center;margin-top:6px}
+.linkbox input{font-size:12px;padding:7px 8px}
+.tabs{display:flex;gap:6px;margin-bottom:12px;overflow:auto}
+.tab{border:0;background:#e8ecf2;border-radius:99px;padding:8px 14px;font-weight:bold;font-size:13px;cursor:pointer;white-space:nowrap;font-family:inherit;color:var(--ink)}
+.tab.on{background:var(--brand);color:#fff}
+.loading{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;padding:20px;justify-content:center}
+.spin{width:18px;height:18px;border:3px solid #cdd3dd;border-top-color:var(--brand);border-radius:50%;animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.hidden{display:none!important}
 </style>
 </head>
 <body>
-<header>
-  <h1>Notula Rapat Monitoring Lanjutan Pengampuan<br>a.n. Sdri. Ariel Ruth Agustin Aritonang</h1>
-  <p>Balai Harta Peninggalan Medan &middot; Jumat, 13 November 2026</p>
-</header>
-<main>
-  <div id="me"></div>
-  <div class="card">
-    <h2>Status Tanda Tangan</h2>
-    <div class="prog" id="prog">Memuat...</div>
-    <div id="list"></div>
-    <div class="acts" style="margin-top:12px">
-      <button class="btn sec" id="dl" disabled>Unduh PDF bertanda tangan</button>
-    </div>
-    <div class="msg" id="dlmsg"></div>
-  </div>
-  <div class="card">
-    <h2>Isi Notula</h2>
-    <p class="note">Tanda tangan otomatis muncul pada halaman 8 setelah disimpan.</p>
-    <div class="pages" id="pages"></div>
-  </div>
-</main>
+<header><h1 id="hTitle">Tanda Tangan Notula</h1><p id="hSub">Balai Harta Peninggalan Medan</p></header>
+<main id="app"><div class="loading"><div class="spin"></div>Memuat...</div></main>
 
-<div id="pad" role="dialog" aria-modal="true">
-  <div class="sheet">
-    <h3 id="padTitle">Tanda tangan</h3>
-    <p>Coret tanda tangan dengan jari atau stylus di kotak di bawah ini. Tekan Ulangi bila ingin mengulang.</p>
-    <canvas id="cv"></canvas>
-    <div class="acts">
-      <button class="btn sec" id="clr">Ulangi</button>
-      <button class="btn sec" id="cancel">Batal</button>
-      <button class="btn" id="save" disabled>Simpan</button>
-    </div>
-    <div class="msg" id="padmsg"></div>
+<div class="korbar" id="korbar">
+  <div class="t" id="kbTip">✏️ <b>Mode koreksi.</b> Ketuk bagian yang perlu dikoreksi. Aktifkan Stabilo untuk menandai satu area.</div>
+  <div class="btns" style="margin-bottom:8px"><button class="btn sec" id="kbMode">🖍️ Stabilo: mati</button></div>
+  <div class="btns">
+    <button class="btn sec" id="kbList">📋 Koreksi saya (<span id="kbCount">0</span>)</button>
+    <button class="btn" id="kbSend" disabled>Kirim koreksi 🚀</button>
+    <button class="btn sec" id="kbExit">Keluar</button>
   </div>
 </div>
 
+<div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
+<div class="toast" id="toast"></div>
+<canvas id="confetti"></canvas>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script>
-const SIGNERS = [{"key": "syuhada", "name": "Syuhada", "role": "Kurator Keperdataan Ahli Madya", "page": 8, "x": 0.17289654132994856, "y": 0.21314048725191434, "w": 0.285568403417864, "h": 0.06414141362880343}, {"key": "syafriadi", "name": "Syafriadi Lubis", "role": "Kepala Balai Harta Peninggalan Medan", "page": 8, "x": 0.5620322429168726, "y": 0.21314048725191434, "w": 0.285568403417864, "h": 0.06414141362880343}, {"key": "elsintha", "name": "Elsintha Damayanti", "role": "Tim BHP Medan", "page": 8, "x": 0.48748208328121506, "y": 0.4246788456204296, "w": 0.18981899756599196, "h": 0.03444631472657962}, {"key": "shela", "name": "Shela Natasha", "role": "Tim BHP Medan", "page": 8, "x": 0.7058579211889935, "y": 0.4733788078200767, "w": 0.18981899756599196, "h": 0.03444631472657962}, {"key": "andre", "name": "Andre Yosua Surbakti", "role": "Tim BHP Medan", "page": 8, "x": 0.48748208328121506, "y": 0.5220787700197238, "w": 0.18981899756599196, "h": 0.03444631472657962}, {"key": "annisa", "name": "Annisa Dwi Marina", "role": "Tim BHP Medan", "page": 8, "x": 0.7058579211889935, "y": 0.5707787322193708, "w": 0.18981899756599196, "h": 0.03444631472657962}, {"key": "yusril", "name": "Yusril Ihza Mahendra", "role": "Tim BHP Medan", "page": 8, "x": 0.48748208328121506, "y": 0.6194786219212178, "w": 0.18981899756599196, "h": 0.03444631472657962}];
-const PAGES = 9;
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+const LEGACY_ID = 'notula-20261113';
+const CATS = [
+  { id: 'ketik', label: '✍️ Salah ketik', c: '#d9480f' },
+  { id: 'nama', label: '👤 Nama/Jabatan', c: '#7048e8' },
+  { id: 'angka', label: '📅 Tanggal/Angka', c: '#1971c2' },
+  { id: 'isi', label: '📝 Isi/Substansi', c: '#c2255c' },
+  { id: 'tambah', label: '➕ Perlu ditambah', c: '#2b8a3e' },
+  { id: 'hapus', label: '✂️ Perlu dihapus', c: '#e03131' },
+  { id: 'lain', label: '💬 Lainnya', c: '#495057' },
+];
+const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
+const STATUS = { baru: ['Baru', 'blue'], diproses: ['Diproses', 'no'], selesai: ['Selesai ✓', 'ok'], dibatalkan: ['Dibatalkan', ''] };
+
 const qs = new URLSearchParams(location.search);
-const meKey = qs.get('n'), meTok = qs.get('k'), adminTok = qs.get('admin');
-const me = SIGNERS.find(s => s.key === meKey && meTok);
-let data = {};
-
+let DOC_ID = qs.get('d'), ME_KEY = qs.get('n'), TOK = qs.get('k'), ADMIN = qs.get('admin');
+if (!DOC_ID && ME_KEY && TOK) DOC_ID = LEGACY_ID; // link lama
 const $ = id => document.getElementById(id);
-const fmt = iso => { try { return new Date(iso).toLocaleString('id-ID',{timeZone:'Asia/Jakarta',day:'numeric',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) + ' WIB'; } catch(e){ return iso; } };
+const app = $('app');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = iso => { try { return new Date(iso).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB'; } catch (e) { return iso; } };
+const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} } };
 
-// halaman notula
-const pagesEl = $('pages');
-for (let i = 1; i <= PAGES; i++) {
-  const d = document.createElement('div'); d.className = 'page'; d.id = 'p' + i;
-  const im = document.createElement('img'); im.className = 'pg'; im.loading = i > 2 ? 'lazy' : 'eager';
-  im.src = 'img/h-' + i + '.jpg'; im.alt = 'Halaman ' + i;
-  d.appendChild(im); pagesEl.appendChild(d);
+async function api(path, opt = {}) {
+  const r = await fetch('/api/' + path, { cache: 'no-store', ...opt, headers: { 'content-type': 'application/json', ...(opt.headers || {}) } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status));
+  return j;
+}
+function toast(msg, ms = 2600) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('on'), ms); }
+function openSheet(html, onMount) { $('sheet').innerHTML = html; $('modal').classList.add('on'); onMount && onMount($('sheet')); }
+function closeSheet() { $('modal').classList.remove('on'); }
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal' && !$('modal').dataset.lock) closeSheet(); });
+async function copy(text) { try { await navigator.clipboard.writeText(text); toast('Link disalin 📋'); } catch (e) { prompt('Salin link ini:', text); } }
+
+// ---------------- konfeti ----------------
+function confetti() {
+  const cv = $('confetti'), ctx = cv.getContext('2d'); cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ['#ffd84d', '#2a9d62', '#1f4f93', '#e03131', '#7048e8', '#ff922b'];
+  const P = Array.from({ length: 140 }, () => ({ x: innerWidth / 2 + (Math.random() - .5) * 80, y: innerHeight * .35, vx: (Math.random() - .5) * 12, vy: -Math.random() * 12 - 4, r: Math.random() * 6 + 4, c: cols[Math.random() * cols.length | 0], a: Math.random() * 6, va: (Math.random() - .5) * .4 }));
+  let f = 0; (function tick() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    for (const p of P) { p.vy += .35; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); ctx.restore(); }
+    if (++f < 150) requestAnimationFrame(tick); else ctx.clearRect(0, 0, cv.width, cv.height);
+  })();
 }
 
-function render() {
-  const done = SIGNERS.filter(s => data[s.key]).length;
-  $('prog').textContent = done + ' dari ' + SIGNERS.length + ' sudah menandatangani';
-  const list = $('list'); list.innerHTML = '';
-  for (const s of SIGNERS) {
-    const r = document.createElement('div'); r.className = 'row';
-    const who = document.createElement('div'); who.className = 'who';
-    const b = document.createElement('b'); b.textContent = s.name;
-    const sp = document.createElement('span'); sp.textContent = data[s.key] ? 'Ditandatangani ' + fmt(data[s.key].at) : s.role;
-    who.append(b, sp); r.appendChild(who);
-    if (data[s.key]) { const im = document.createElement('img'); im.src = data[s.key].img; im.alt = ''; r.appendChild(im); }
-    const st = document.createElement('span'); st.className = 'st ' + (data[s.key] ? 'ok' : 'no'); st.textContent = data[s.key] ? 'Sudah' : 'Belum';
-    r.appendChild(st);
-    if (adminTok && data[s.key]) {
-      const x = document.createElement('button'); x.className = 'btn danger'; x.textContent = 'Hapus';
-      x.onclick = () => resetSig(s.key); r.appendChild(x);
-    }
-    list.appendChild(r);
+// ---------------- render PDF ----------------
+let PDF = null, PAGES = [];
+async function renderPdf(container, url) {
+  container.innerHTML = '<div class="loading"><div class="spin"></div>Memuat notula...</div>';
+  PDF = await pdfjsLib.getDocument({ url }).promise;
+  container.innerHTML = ''; PAGES = [];
+  const width = Math.min(container.clientWidth || 800, 860), dpr = Math.min(2.5, Math.max(1.5, devicePixelRatio || 1));
+  for (let i = 1; i <= PDF.numPages; i++) {
+    const page = await PDF.getPage(i);
+    const vp1 = page.getViewport({ scale: 1 }), scale = width / vp1.width * dpr, vp = page.getViewport({ scale });
+    const wrap = document.createElement('div'); wrap.className = 'page'; wrap.dataset.page = i; wrap.id = 'pg' + i;
+    const cv = document.createElement('canvas'); cv.width = vp.width; cv.height = vp.height;
+    const ov = document.createElement('div'); ov.className = 'ov';
+    const no = document.createElement('div'); no.className = 'pgno'; no.textContent = 'Hal. ' + i + '/' + PDF.numPages;
+    wrap.append(cv, ov, no); container.appendChild(wrap);
+    PAGES.push({ wrap, ov, cv });
+    page.render({ canvasContext: cv.getContext('2d'), viewport: vp });
   }
-  // overlay di halaman 8
-  document.querySelectorAll('.sig').forEach(e => e.remove());
-  for (const s of SIGNERS) {
-    if (!data[s.key]) continue;
-    const box = document.createElement('div'); box.className = 'sig';
-    Object.assign(box.style, { left: s.x*100+'%', top: s.y*100+'%', width: s.w*100+'%', height: s.h*100+'%' });
-    const im = document.createElement('img'); im.src = data[s.key].img; im.alt = 'Tanda tangan ' + s.name;
-    box.appendChild(im); $('p' + s.page).appendChild(box);
-  }
+}
+const ovOf = p => PAGES[p - 1]?.ov;
+
+// ================= STATE =================
+let S = { doc: null, sigs: {}, kor: [], admin: null };
+let drafts = [];
+const draftKey = () => 'kor:' + DOC_ID + ':' + ME_KEY;
+const me = () => S.doc && ME_KEY && TOK ? S.doc.signers.find(s => s.key === ME_KEY) : null;
+const sigOk = s => S.sigs[s.key] && S.sigs[s.key].ver === S.doc.ver;
+
+async function loadDoc() {
+  const j = await api('docs/' + encodeURIComponent(DOC_ID));
+  S.doc = j.doc; S.sigs = j.sigs || {}; S.kor = j.koreksi || [];
+}
+
+// ================= HALAMAN NOTULA =================
+let VIEW_TAB = 'status';
+async function showDoc() {
+  try { await loadDoc(); } catch (e) { app.innerHTML = '<div class="card"><p>Notula tidak dapat dimuat: ' + esc(e.message) + '</p></div>'; return; }
+  $('hTitle').textContent = S.doc.title; $('hSub').textContent = S.doc.subtitle || 'Balai Harta Peninggalan Medan';
+  document.title = S.doc.title + ' · Tanda Tangan';
+  drafts = store.get(draftKey(), []);
+  app.innerHTML = `
+    <div id="meCard"></div>
+    <div id="adminCard"></div>
+    <div class="card"><h2>Status Tanda Tangan</h2><div class="small" id="prog"></div><div class="progress"><i id="bar" style="width:0"></i></div><div id="list"></div>
+      <div class="btns" style="margin-top:12px"><button class="btn sec" id="dl">⬇️ Unduh PDF bertanda tangan</button></div></div>
+    <div class="card" id="korCard"></div>
+    <div class="card"><h2>Isi Notula</h2><p class="small" style="margin:0 0 10px">Tanda tangan muncul otomatis di kolomnya. Penanda 📍 adalah koreksi dari peserta, ketuk untuk melihat.</p><div class="pages" id="pages"></div></div>`;
+  $('dl').onclick = downloadPdf;
+  renderStatic();
+  await renderPdf($('pages'), '/api/docs/' + encodeURIComponent(DOC_ID) + '/pdf?v=' + S.doc.ver);
+  renderOverlays();
+  if (ADMIN) loadAdmin();
+  if (location.hash === '#ttd' && me()) startSignFlow();
+  setInterval(refresh, 25000);
+}
+async function refresh() {
+  if (document.hidden || $('modal').classList.contains('on') || document.body.classList.contains('koreksi')) return;
+  const oldVer = S.doc.ver;
+  try { await loadDoc(); } catch (e) { return; }
+  if (S.doc.ver !== oldVer) { await renderPdf($('pages'), '/api/docs/' + encodeURIComponent(DOC_ID) + '/pdf?v=' + S.doc.ver); toast('📄 Notula diperbarui ke versi terbaru'); }
+  renderStatic(); renderOverlays();
+}
+
+function renderStatic() {
+  const d = S.doc, done = d.signers.filter(sigOk).length;
+  $('prog').textContent = done + ' dari ' + d.signers.length + ' sudah menandatangani' + (d.ver > 1 ? ' · versi revisi ke-' + (d.ver - 1) : '');
+  $('bar').style.width = (d.signers.length ? done / d.signers.length * 100 : 0) + '%';
+  $('list').innerHTML = d.signers.map(s => {
+    const sg = S.sigs[s.key], ok = sigOk(s), old = sg && !ok;
+    return `<div class="row"><div class="grow"><b>${esc(s.name)}</b><span class="small">${ok ? 'Ditandatangani ' + fmt(sg.at) : old ? 'Perlu tanda tangan ulang (ada revisi)' : esc(s.role)}</span></div>
+      ${ok ? `<img class="sg" src="${sg.img}" alt="">` : ''}<span class="pill ${ok ? 'ok' : old ? 'bad' : 'no'}">${ok ? 'Sudah' : old ? 'Ulang' : 'Belum'}</span>
+      ${ADMIN && sg ? `<button class="btn sm danger" data-reset="${esc(s.key)}">Hapus</button>` : ''}</div>`;
+  }).join('');
+  $('list').querySelectorAll('[data-reset]').forEach(b => b.onclick = () => resetSig(b.dataset.reset));
   // kartu pribadi
-  const meEl = $('me'); meEl.innerHTML = '';
-  if (meKey && !me) {
-    meEl.innerHTML = '<div class="card me"><p>Link tanda tangan tidak lengkap. Mohon gunakan link yang dikirimkan kepada Bapak/Ibu.</p></div>';
-  } else if (me) {
-    const c = document.createElement('div'); c.className = 'card me';
-    const p = document.createElement('p');
-    if (data[me.key]) {
-      p.textContent = 'Terima kasih, ' + me.name + '. Tanda tangan Bapak/Ibu sudah tersimpan di notula pada ' + fmt(data[me.key].at) + '. Jika ingin mengganti, tekan Ulangi tanda tangan.';
-      const bt = document.createElement('button'); bt.className = 'btn sec'; bt.textContent = 'Ulangi tanda tangan';
-      bt.onclick = openPad; c.append(p, bt);
-    } else {
-      p.textContent = 'Yth. ' + me.name + ' (' + me.role + '), silakan membaca notula di bawah, lalu tekan tombol berikut untuk menandatangani.';
-      const bt = document.createElement('button'); bt.className = 'btn'; bt.textContent = 'Tanda tangani sekarang';
-      bt.onclick = openPad; c.append(p, bt);
-    }
-    meEl.appendChild(c);
-  }
-  $('dl').disabled = false;
+  const m = me(), mc = $('meCard');
+  if (ME_KEY && !m) mc.innerHTML = '<div class="card me"><p>Link tanda tangan tidak lengkap atau tidak berlaku. Mohon gunakan link yang dikirimkan kepada Bapak/Ibu.</p></div>';
+  else if (m) {
+    const ok = sigOk(m), myKor = S.kor.filter(c => c.by === m.key && c.status !== 'dibatalkan');
+    mc.innerHTML = `<div class="card me"><p>${ok ? `✅ Terima kasih, <b>${esc(m.name)}</b>. Tanda tangan Bapak/Ibu sudah tersimpan di notula (${fmt(S.sigs[m.key].at)}).`
+      : `Yth. <b>${esc(m.name)}</b>${m.role ? ' (' + esc(m.role) + ')' : ''}, silakan membaca notula di bawah, lalu tekan tombol berikut untuk menandatangani.`}</p>
+      ${myKor.length ? `<p class="small">Bapak/Ibu telah mengirim ${myKor.length} koreksi, ${myKor.filter(c => c.status === 'selesai').length} sudah ditindaklanjuti.</p>` : ''}
+      <div class="btns"><button class="btn" id="goSign">${ok ? '🔁 Ulangi tanda tangan' : '✍️ Tanda tangani sekarang'}</button><button class="btn warn" id="goKor">✏️ Ajukan koreksi</button></div></div>`;
+    $('goSign').onclick = startSignFlow; $('goKor').onclick = enterKoreksi;
+  } else mc.innerHTML = '';
+  renderKorCard();
+  updateKorbar();
 }
 
-async function load() {
-  try {
-    const r = await fetch('/api/ttd', { cache: 'no-store' });
-    if (!r.ok) throw new Error((await r.json()).error || r.status);
-    data = await r.json();
-  } catch (e) { $('prog').textContent = 'Status belum bisa dimuat (' + e.message + ').'; }
-  render();
+// ---------------- overlays: ttd, koreksi, draft ----------------
+function place(el, x, y, w, h) { Object.assign(el.style, { left: x * 100 + '%', top: y * 100 + '%', width: w * 100 + '%', height: h * 100 + '%' }); }
+function renderOverlays() {
+  PAGES.forEach(p => p.ov.innerHTML = '');
+  for (const s of S.doc.signers) {
+    if (!sigOk(s) || !ovOf(s.page)) continue;
+    const b = document.createElement('div'); b.className = 'sig'; place(b, s.x, s.y, s.w, s.h);
+    b.innerHTML = `<img src="${S.sigs[s.key].img}" alt="Tanda tangan ${esc(s.name)}">`; ovOf(s.page).appendChild(b);
+  }
+  const vis = S.kor.filter(c => c.status !== 'dibatalkan');
+  vis.forEach((c, i) => drawKor(c, String(i + 1), false));
+  drafts.forEach((c, i) => drawKor(c, '✎' + (i + 1), true, i));
+}
+function drawKor(c, label, isDraft, di) {
+  const ov = ovOf(c.page); if (!ov) return;
+  const col = catOf(c.cat).c;
+  if (c.w > 0.01 && c.h > 0.005) {
+    const m = document.createElement('div'); m.className = 'mark' + (isDraft ? ' draft' : ''); place(m, c.x, c.y, c.w, c.h);
+    m.style.background = col + '33'; m.style.border = '2px solid ' + col; ov.appendChild(m);
+    m.onclick = e => { e.stopPropagation(); isDraft ? editDraft(di) : showKor(c); };
+  }
+  const p = document.createElement('div'); p.className = 'pin' + (c.status === 'selesai' ? ' done' : '');
+  p.style.left = (c.x + (c.w > 0.01 ? c.w : 0)) * 100 + '%'; p.style.top = c.y * 100 + '%';
+  p.innerHTML = `<span style="background:${col}${isDraft ? ';outline:2px dashed #fff' : ''}"></span><b>${c.status === 'selesai' ? '✓' : esc(label)}</b>`;
+  p.onclick = e => { e.stopPropagation(); isDraft ? editDraft(di) : showKor(c); };
+  ov.appendChild(p);
 }
 
-// pad tanda tangan: goresan pena tinta basah (tebal-tipis mengikuti kecepatan dan tekanan)
-const INK = '#14248a';
-const cv = $('cv'); const ctx = cv.getContext('2d');
-let drawing = false, dirty = false, pts = [], lastW = 2.2;
-function sizeCanvas() {
-  const r = cv.getBoundingClientRect(), dpr = Math.max(2, window.devicePixelRatio || 1);
-  cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-  ctx.strokeStyle = INK; ctx.fillStyle = INK; ctx.clearRect(0,0,r.width,r.height);
-  dirty = false; $('save').disabled = true;
+// ---------------- daftar koreksi ----------------
+function korItem(c, i, opts = {}) {
+  const cat = catOf(c.cat), st = STATUS[c.status] || STATUS.baru, m = me();
+  const agreed = m && (c.agree || []).includes(m.key);
+  return `<div class="kitem" style="--c:${cat.c}"><div class="h"><span class="num">${opts.label || i + 1}</span><b class="small" style="color:${cat.c}">${cat.label}</b>
+    <span class="small">Hal. ${c.page}</span>${c.status ? `<span class="pill ${st[1]}">${st[0]}</span>` : ''}</div>
+    <div class="tx">${c.from ? `<del>${esc(c.from)}</del> → ` : ''}${c.to ? `<ins>${esc(c.to)}</ins>` : ''}${c.note ? `<div>${esc(c.note)}</div>` : ''}</div>
+    ${c.byName ? `<div class="small" style="margin-top:4px">oleh ${esc(c.byName)} · ${fmt(c.at)}${(c.agree || []).length ? ' · 👍 ' + c.agree.length : ''}</div>` : ''}
+    ${c.reply ? `<div class="reply">💬 Admin: ${esc(c.reply)}</div>` : ''}
+    <div class="btns" style="margin-top:8px">
+      <button class="btn sm sec" data-go="${c.page}">🔎 Lihat</button>
+      ${opts.draft ? `<button class="btn sm sec" data-edit="${i}">Ubah</button><button class="btn sm danger" data-del="${i}">Hapus</button>` : ''}
+      ${!opts.draft && m && c.by !== m.key && c.status !== 'selesai' ? `<button class="btn sm ${agreed ? '' : 'sec'}" data-agree="${c.id}">👍 ${agreed ? 'Setuju' : 'Saya setuju'}</button>` : ''}
+      ${!opts.draft && m && c.by === m.key && c.status === 'baru' ? `<button class="btn sm danger" data-cancel="${c.id}">Batalkan</button>` : ''}
+      ${!opts.draft && ADMIN ? `<select data-st="${c.id}" style="width:auto;padding:6px 8px;font-size:12px">${Object.entries(STATUS).map(([k, v]) => `<option value="${k}" ${k === c.status ? 'selected' : ''}>${v[0]}</option>`).join('')}</select>
+        <button class="btn sm sec" data-reply="${c.id}">💬 Balas</button>` : ''}
+    </div></div>`;
 }
-function pt(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, t: performance.now(), p: e.pressure }; }
-function widthFor(a, b) {
-  const d = Math.hypot(b.x - a.x, b.y - a.y), dt = Math.max(1, b.t - a.t), v = d / dt; // px per ms
-  let w = 3.4 - Math.min(v, 3) * 0.85;               // cepat = tipis, lambat = tebal
-  if (b.p && b.p > 0 && b.p !== 0.5) w *= 0.6 + b.p;  // tekanan stylus jika ada
-  w = Math.max(0.9, Math.min(3.8, w));
-  lastW = lastW * 0.65 + w * 0.35;                    // perhalus perubahan tebal
-  return lastW;
+function bindKorButtons(root) {
+  root.querySelectorAll('[data-go]').forEach(b => b.onclick = () => { closeSheet(); $('pg' + b.dataset.go)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+  root.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editDraft(+b.dataset.edit));
+  root.querySelectorAll('[data-del]').forEach(b => b.onclick = () => { drafts.splice(+b.dataset.del, 1); saveDrafts(); showDraftList(); });
+  root.querySelectorAll('[data-agree]').forEach(b => b.onclick = async () => {
+    const c = S.kor.find(x => x.id === b.dataset.agree), on = !(c.agree || []).includes(ME_KEY);
+    try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: c.id, key: ME_KEY, k: TOK, agree: on }) }); toast(on ? '👍 Dukungan tercatat' : 'Dukungan dibatalkan'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
+  });
+  root.querySelectorAll('[data-cancel]').forEach(b => b.onclick = async () => {
+    try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: b.dataset.cancel, key: ME_KEY, k: TOK, status: 'dibatalkan' }) }); toast('Koreksi dibatalkan'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
+  });
+  root.querySelectorAll('[data-st]').forEach(s => s.onchange = async () => {
+    try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: s.dataset.st, k: ADMIN, status: s.value }) }); toast('Status diperbarui'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
+  });
+  root.querySelectorAll('[data-reply]').forEach(b => b.onclick = () => {
+    const c = S.kor.find(x => x.id === b.dataset.reply);
+    openSheet(`<h3>💬 Balas koreksi</h3><p class="lead">${esc(c.from ? c.from + ' → ' : '')}${esc(c.to || c.note)}</p><textarea id="rp" placeholder="Contoh: Sudah diperbaiki di revisi.">${esc(c.reply || '')}</textarea>
+      <div class="btns" style="margin-top:10px"><button class="btn sec" onclick="closeSheet()">Batal</button><button class="btn" id="rpOk">Kirim balasan</button></div>`, sh => {
+      sh.querySelector('#rpOk').onclick = async () => { try { await api('docs/' + DOC_ID + '/koreksi', { method: 'PATCH', body: JSON.stringify({ id: c.id, k: ADMIN, reply: sh.querySelector('#rp').value }) }); closeSheet(); toast('Balasan terkirim'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); } };
+    });
+  });
 }
-function seg(p0, p1, p2, w0, w1) {
-  // kurva kuadrat dari titik tengah ke titik tengah, digambar bertahap agar tebal berubah halus
-  const m1 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 }, m2 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
-  const n = Math.max(2, Math.ceil(Math.hypot(m2.x - m1.x, m2.y - m1.y) / 1.5));
-  let px = m1.x, py = m1.y;
-  for (let i = 1; i <= n; i++) {
-    const t = i / n, u = 1 - t;
-    const x = u*u*m1.x + 2*u*t*p1.x + t*t*m2.x, y = u*u*m1.y + 2*u*t*p1.y + t*t*m2.y;
-    ctx.lineWidth = w0 + (w1 - w0) * t;
-    ctx.globalAlpha = 0.92;
-    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
-    px = x; py = y;
-  }
-  ctx.globalAlpha = 1;
+async function afterChange() { await loadDoc(); renderStatic(); renderOverlays(); }
+function renderKorCard() {
+  const el = $('korCard'); if (!el) return;
+  const vis = S.kor.map((c, i) => ({ c, i })).filter(x => x.c.status !== 'dibatalkan');
+  const open = vis.filter(x => x.c.status !== 'selesai').length;
+  if (!vis.length && !me() && !ADMIN) { el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = `<h2>Koreksi Peserta ${vis.length ? `<span class="pill ${open ? 'no' : 'ok'}">${open ? open + ' belum selesai' : 'Semua selesai ✓'}</span>` : ''}</h2>
+    ${vis.length ? vis.map(x => korItem(x.c, vis.indexOf(x))).join('') : '<div class="empty">Belum ada koreksi. 👍</div>'}`;
+  bindKorButtons(el);
 }
-cv.addEventListener('pointerdown', e => {
-  e.preventDefault(); cv.setPointerCapture(e.pointerId); drawing = true; lastW = 2.4;
-  const p = pt(e); pts = [p, p];
-  ctx.beginPath(); ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2); ctx.fill();
-});
-cv.addEventListener('pointermove', e => {
-  if (!drawing) return; e.preventDefault();
-  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-  for (const ev of evs) {
-    const p = pt(ev), a = pts[pts.length - 1];
-    if (Math.hypot(p.x - a.x, p.y - a.y) < 0.8) continue;
-    const w0 = lastW, w1 = widthFor(a, p);
-    pts.push(p);
-    const n = pts.length; seg(pts[n-3], pts[n-2], pts[n-1], w0, w1);
-  }
-  dirty = true; $('save').disabled = false;
-});
-function endStroke() {
-  if (!drawing) return; drawing = false;
-  const n = pts.length;
-  if (n >= 2) { const a = pts[n-2], b = pts[n-1]; ctx.lineWidth = Math.max(0.8, lastW * 0.6); ctx.beginPath(); ctx.moveTo((a.x+b.x)/2, (a.y+b.y)/2); ctx.lineTo(b.x, b.y); ctx.stroke(); }
-  pts = [];
+function showKor(c) {
+  const i = S.kor.filter(x => x.status !== 'dibatalkan').indexOf(c);
+  openSheet(`<h3>Koreksi #${i + 1}</h3>${korItem(c, i)}<div class="btns" style="margin-top:6px"><button class="btn sec" onclick="closeSheet()">Tutup</button></div>`, sh => bindKorButtons(sh));
 }
-['pointerup','pointercancel','pointerleave'].forEach(t => cv.addEventListener(t, endStroke));
-function openPad() { $('padTitle').textContent = 'Tanda tangan: ' + me.name; $('padmsg').textContent = ''; $('pad').classList.add('on'); requestAnimationFrame(sizeCanvas); }
-$('clr').onclick = sizeCanvas;
-$('cancel').onclick = () => $('pad').classList.remove('on');
-function trimmed() {
-  const w = cv.width, h = cv.height, px = ctx.getImageData(0,0,w,h).data;
-  let x0=w,y0=h,x1=0,y1=0;
-  for (let y=0;y<h;y++) for (let x=0;x<w;x++) if (px[(y*w+x)*4+3]>10){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
-  if (x1<=x0) return null;
-  const pad = 8, sw = x1-x0+pad*2, sh = y1-y0+pad*2;
-  const scale = Math.min(1, 900/sw, 380/sh);
-  const o = document.createElement('canvas'); o.width = Math.round(sw*scale); o.height = Math.round(sh*scale);
-  o.getContext('2d').drawImage(cv, x0-pad, y0-pad, sw, sh, 0, 0, o.width, o.height);
-  return o.toDataURL('image/png');
+
+// ================= ALUR TANDA TANGAN: tanya koreksi dulu =================
+function startSignFlow() {
+  const m = me(); if (!m) return;
+  openSheet(`<div class="big-emoji">🧐</div><h3 style="text-align:center">Apakah ada koreksi pada notula ini?</h3>
+    <p class="lead" style="text-align:center">Sebelum menandatangani, pastikan isi notula sudah sesuai dengan jalannya rapat.</p>
+    <div class="choice">
+      <button class="btn warn" id="cYes"><span style="font-size:24px">✏️</span><span>Ya, ada koreksi<small>Tandai langsung bagian yang perlu diperbaiki</small></span></button>
+      <button class="btn" id="cNo"><span style="font-size:24px">✅</span><span>Tidak ada, notula sudah sesuai<small>Lanjut ke tanda tangan</small></span></button>
+      <button class="btn sec" onclick="closeSheet()">Nanti dulu</button>
+    </div>`, sh => {
+    sh.querySelector('#cYes').onclick = () => { closeSheet(); enterKoreksi(); };
+    sh.querySelector('#cNo').onclick = () => openPad();
+  });
 }
-$('save').onclick = async () => {
-  if (!dirty) return;
-  const img = trimmed(); if (!img) return;
-  $('save').disabled = true; $('padmsg').className = 'msg'; $('padmsg').textContent = 'Menyimpan...';
-  try {
-    const r = await fetch('/api/ttd', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ key: me.key, k: meTok, img }) });
-    const j = await r.json();
-    if (!r.ok) throw new Error(j.error || r.status);
-    $('pad').classList.remove('on'); await load();
-    document.getElementById('p8').scrollIntoView({ behavior: 'smooth' });
-  } catch (e) { $('padmsg').className = 'msg err'; $('padmsg').textContent = 'Gagal menyimpan: ' + e.message; $('save').disabled = false; }
+
+// ================= MODE KOREKSI =================
+function saveDrafts() { store.set(draftKey(), drafts); updateKorbar(); renderOverlays(); }
+function updateKorbar() { $('kbCount').textContent = drafts.length; $('kbSend').disabled = !drafts.length; }
+function enterKoreksi() {
+  if (!me()) return;
+  document.body.classList.add('koreksi'); $('korbar').classList.add('on');
+  if (!store.get('korTip', false)) {
+    openSheet(`<div class="big-emoji">🖍️</div><h3 style="text-align:center">Cara mengoreksi</h3>
+      <div class="kitem" style="--c:#1f4f93"><div class="tx">👆 <b>Ketuk</b> kata atau kalimat yang salah untuk menaruh penanda.</div></div>
+      <div class="kitem" style="--c:#2b8a3e"><div class="tx">🖍️ Nyalakan <b>Stabilo</b>, lalu geser jari untuk menandai satu paragraf atau area.</div></div>
+      <div class="kitem" style="--c:#c2255c"><div class="tx">📋 Semua koreksi tersimpan sementara di HP, lalu tekan <b>Kirim koreksi</b> jika sudah selesai.</div></div>
+      <div class="btns"><button class="btn" id="tipOk">Mengerti, mulai koreksi</button></div>`, sh => sh.querySelector('#tipOk').onclick = () => { store.set('korTip', true); closeSheet(); });
+  } else toast('✏️ Ketuk bagian notula yang perlu dikoreksi');
+}
+function exitKoreksi() { document.body.classList.remove('koreksi', 'stabilo'); $('kbMode').textContent = '🖍️ Stabilo: mati'; $('kbMode').className = 'btn sec'; $('korbar').classList.remove('on'); }
+$('kbExit').onclick = () => {
+  if (drafts.length) openSheet(`<h3>Keluar dari mode koreksi?</h3><p class="lead">Ada ${drafts.length} koreksi yang belum dikirim. Koreksi tetap tersimpan di HP ini dan bisa dikirim nanti.</p>
+    <div class="btns"><button class="btn sec" id="xNo">Lanjut koreksi</button><button class="btn" id="xYes">Keluar</button></div>`, sh => { sh.querySelector('#xNo').onclick = closeSheet; sh.querySelector('#xYes').onclick = () => { closeSheet(); exitKoreksi(); }; });
+  else exitKoreksi();
 };
-
-async function resetSig(key) {
-  const s = SIGNERS.find(x => x.key === key);
-  if (!window.confirm('Hapus tanda tangan ' + s.name + '?')) return;
-  const r = await fetch('/api/ttd', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ key, k: adminTok, action: 'reset' }) });
-  if (!r.ok) { const j = await r.json().catch(()=>({})); alert(j.error || 'Gagal'); }
-  load();
+$('kbList').onclick = showDraftList;
+$('kbMode').onclick = () => {
+  const on = document.body.classList.toggle('stabilo');
+  $('kbMode').textContent = on ? '🖍️ Stabilo: aktif (geser jari untuk menandai)' : '🖍️ Stabilo: mati';
+  $('kbMode').className = 'btn ' + (on ? 'warn' : 'sec');
+  toast(on ? '🖍️ Geser jari untuk menandai area. Matikan Stabilo untuk menggulir.' : '📌 Ketuk untuk menaruh penanda, geser untuk menggulir');
+};
+$('kbSend').onclick = sendKoreksi;
+function showDraftList() {
+  openSheet(`<h3>📋 Koreksi saya (${drafts.length})</h3>${drafts.length ? drafts.map((c, i) => korItem(c, i, { draft: true, label: '✎' + (i + 1) })).join('') : '<div class="empty">Belum ada koreksi. Ketuk bagian notula untuk menambah.</div>'}
+    <div class="btns"><button class="btn sec" onclick="closeSheet()">Tambah lagi</button>${drafts.length ? '<button class="btn" id="dlSend">Kirim koreksi 🚀</button>' : ''}</div>`, sh => {
+    bindKorButtons(sh); const b = sh.querySelector('#dlSend'); if (b) b.onclick = sendKoreksi;
+  });
+}
+// ketuk / seret di halaman
+let drag = null;
+document.addEventListener('pointerdown', e => {
+  if (!document.body.classList.contains('koreksi')) return;
+  const pg = e.target.closest('.page'); if (!pg || e.target.closest('.pin,.mark')) return;
+  const stab = document.body.classList.contains('stabilo');
+  if (stab) e.preventDefault();
+  const r = pg.getBoundingClientRect();
+  drag = { stab, sx: e.clientX, sy: e.clientY, moved: false, pg, r, x0: (e.clientX - r.left) / r.width, y0: (e.clientY - r.top) / r.height, x1: null, y1: null, el: null };
+  pg.setPointerCapture?.(e.pointerId);
+});
+document.addEventListener('pointermove', e => {
+  if (!drag) return;
+  if (Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 10) drag.moved = true;
+  if (!drag.stab) return;
+  const { r } = drag; drag.x1 = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)); drag.y1 = Math.max(0, Math.min(1, (e.clientY - r.top) / r.height));
+  if (Math.abs(drag.x1 - drag.x0) * r.width > 12 || Math.abs(drag.y1 - drag.y0) * r.height > 12) {
+    if (!drag.el) { drag.el = document.createElement('div'); drag.el.className = 'mark draft'; drag.el.style.background = 'rgba(255,216,77,.45)'; drag.pg.querySelector('.ov').appendChild(drag.el); }
+    place(drag.el, Math.min(drag.x0, drag.x1), Math.min(drag.y0, drag.y1), Math.abs(drag.x1 - drag.x0), Math.abs(drag.y1 - drag.y0));
+  }
+});
+document.addEventListener('pointercancel', () => { if (drag?.el) drag.el.remove(); drag = null; });
+document.addEventListener('pointerup', () => {
+  if (!drag) return; const d = drag; drag = null;
+  if (!d.stab && d.moved) return; // sedang menggulir
+  const page = +d.pg.dataset.page;
+  let item;
+  if (d.el) { d.el.remove(); item = { page, x: Math.min(d.x0, d.x1), y: Math.min(d.y0, d.y1), w: Math.abs(d.x1 - d.x0), h: Math.abs(d.y1 - d.y0) }; }
+  else item = { page, x: d.x0, y: d.y0 + 0.004, w: 0, h: 0 };
+  korForm(item, -1);
+});
+function korForm(item, idx) {
+  const it = { cat: store.get('lastCat', 'ketik'), from: '', to: '', note: '', ...item };
+  openSheet(`<h3>${idx < 0 ? '✏️ Koreksi baru' : '✏️ Ubah koreksi'} <span class="small">· Hal. ${it.page}</span></h3>
+    <label class="f">Jenis koreksi</label><div class="chips" id="cats">${CATS.map(c => `<button class="chip ${c.id === it.cat ? 'on' : ''}" style="--c:${c.c}" data-c="${c.id}">${c.label}</button>`).join('')}</div>
+    <label class="f">Tertulis di notula <span style="font-weight:normal">(boleh dikosongkan)</span></label><input type="text" id="kFrom" value="${esc(it.from)}" placeholder="Contoh: Elsinta Damayanti">
+    <label class="f" id="kToLbl">Seharusnya</label><input type="text" id="kTo" value="${esc(it.to)}" placeholder="Contoh: Elsintha Damayanti">
+    <label class="f">Catatan tambahan <span style="font-weight:normal">(opsional)</span></label><textarea id="kNote" placeholder="Jelaskan jika perlu">${esc(it.note)}</textarea>
+    <div class="btns" style="margin-top:12px">${idx >= 0 ? '<button class="btn danger" id="kDel">Hapus</button>' : ''}<button class="btn sec" id="kCancel">Batal</button><button class="btn" id="kOk">Simpan 📌</button></div>`, sh => {
+    const setLbl = () => { const c = it.cat; sh.querySelector('#kToLbl').textContent = c === 'tambah' ? 'Yang perlu ditambahkan' : c === 'hapus' ? 'Alasan dihapus' : 'Seharusnya'; };
+    setLbl();
+    sh.querySelectorAll('.chip').forEach(b => b.onclick = () => { it.cat = b.dataset.c; sh.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === b)); setLbl(); });
+    sh.querySelector('#kCancel').onclick = closeSheet;
+    if (idx >= 0) sh.querySelector('#kDel').onclick = () => { drafts.splice(idx, 1); saveDrafts(); closeSheet(); toast('Koreksi dihapus'); };
+    sh.querySelector('#kOk').onclick = () => {
+      it.from = sh.querySelector('#kFrom').value.trim(); it.to = sh.querySelector('#kTo').value.trim(); it.note = sh.querySelector('#kNote').value.trim();
+      if (!it.to && !it.note && it.cat !== 'hapus') { toast('Isi "Seharusnya" atau catatan dulu ya 🙏'); return; }
+      store.set('lastCat', it.cat);
+      if (idx < 0) drafts.push(it); else drafts[idx] = it;
+      saveDrafts(); closeSheet();
+      toast(idx < 0 ? `📌 Koreksi #${drafts.length} ditambahkan` : 'Koreksi diperbarui');
+    };
+    setTimeout(() => sh.querySelector(it.from ? '#kTo' : '#kFrom')?.focus(), 250);
+  });
+}
+function editDraft(i) { korForm(drafts[i], i); }
+async function sendKoreksi() {
+  if (!drafts.length) return;
+  $('kbSend').disabled = true;
+  try {
+    const r = await api('docs/' + DOC_ID + '/koreksi', { method: 'POST', body: JSON.stringify({ key: ME_KEY, k: TOK, items: drafts }) });
+    drafts = []; saveDrafts(); exitKoreksi(); confetti(); await afterChange();
+    openSheet(`<div class="big-emoji">🎉</div><h3 style="text-align:center">Terima kasih! ${r.count} koreksi terkirim</h3>
+      <p class="lead" style="text-align:center">Admin akan menindaklanjuti dan Bapak/Ibu bisa memantau statusnya di halaman ini. Mau langsung menandatangani, atau menunggu notula direvisi?</p>
+      <div class="choice"><button class="btn" id="aSign"><span style="font-size:22px">✍️</span><span>Tanda tangan sekarang</span></button>
+      <button class="btn sec" id="aWait"><span style="font-size:22px">⏳</span><span>Nanti setelah direvisi</span></button></div>`, sh => {
+      sh.querySelector('#aSign').onclick = () => openPad(); sh.querySelector('#aWait').onclick = () => { closeSheet(); toast('Siap, silakan buka link ini lagi setelah revisi 👍'); };
+    });
+  } catch (e) { toast('⚠️ Gagal mengirim: ' + e.message); $('kbSend').disabled = false; }
 }
 
-// unduh PDF bertanda tangan
-$('dl').onclick = async () => {
-  const m = $('dlmsg'); m.className = 'msg'; m.textContent = 'Menyiapkan PDF...';
+// ================= PAD TANDA TANGAN (pena tinta basah) =================
+const INK = '#14248a';
+function openPad() {
+  const m = me();
+  $('modal').dataset.lock = '1';
+  openSheet(`<h3>✍️ Tanda tangan: ${esc(m.name)}</h3><p class="lead">Coret tanda tangan dengan jari atau stylus di kotak di bawah ini.</p>
+    <canvas id="cv"></canvas>
+    <div class="btns" style="margin-top:10px"><button class="btn sec" id="pClr">↺ Ulangi</button><button class="btn sec" id="pCancel">Batal</button><button class="btn" id="pSave" disabled>Simpan</button></div>
+    <div class="small" id="pMsg" style="margin-top:8px"></div>`, sh => {
+    const cv = sh.querySelector('#cv'), ctx = cv.getContext('2d'); let drawing = false, dirty = false, pts = [], lastW = 2.2;
+    const save = sh.querySelector('#pSave');
+    function size() {
+      const r = cv.getBoundingClientRect(), dpr = Math.max(2, devicePixelRatio || 1);
+      cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = INK; ctx.fillStyle = INK;
+      ctx.clearRect(0, 0, r.width, r.height); dirty = false; save.disabled = true;
+    }
+    requestAnimationFrame(size);
+    const pt = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, t: performance.now(), p: e.pressure }; };
+    function widthFor(a, b) {
+      const v = Math.hypot(b.x - a.x, b.y - a.y) / Math.max(1, b.t - a.t);
+      let w = 3.4 - Math.min(v, 3) * 0.85;
+      if (b.p && b.p > 0 && b.p !== 0.5) w *= 0.6 + b.p;
+      w = Math.max(0.9, Math.min(3.8, w)); lastW = lastW * 0.65 + w * 0.35; return lastW;
+    }
+    function seg(p0, p1, p2, w0, w1) {
+      const m1 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 }, m2 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+      const n = Math.max(2, Math.ceil(Math.hypot(m2.x - m1.x, m2.y - m1.y) / 1.5)); let px = m1.x, py = m1.y;
+      ctx.globalAlpha = 0.93;
+      for (let i = 1; i <= n; i++) { const t = i / n, u = 1 - t, x = u * u * m1.x + 2 * u * t * p1.x + t * t * m2.x, y = u * u * m1.y + 2 * u * t * p1.y + t * t * m2.y;
+        ctx.lineWidth = w0 + (w1 - w0) * t; ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke(); px = x; py = y; }
+      ctx.globalAlpha = 1;
+    }
+    cv.addEventListener('pointerdown', e => { e.preventDefault(); cv.setPointerCapture(e.pointerId); drawing = true; lastW = 2.4; const p = pt(e); pts = [p, p]; ctx.beginPath(); ctx.arc(p.x, p.y, 1.2, 0, 7); ctx.fill(); });
+    cv.addEventListener('pointermove', e => {
+      if (!drawing) return; e.preventDefault();
+      for (const ev of (e.getCoalescedEvents ? e.getCoalescedEvents() : [e])) {
+        const p = pt(ev), a = pts[pts.length - 1]; if (Math.hypot(p.x - a.x, p.y - a.y) < 0.8) continue;
+        const w0 = lastW, w1 = widthFor(a, p); pts.push(p); const n = pts.length; seg(pts[n - 3], pts[n - 2], pts[n - 1], w0, w1);
+      }
+      dirty = true; save.disabled = false;
+    });
+    const end = () => { if (!drawing) return; drawing = false; const n = pts.length; if (n >= 2) { const a = pts[n - 2], b = pts[n - 1]; ctx.lineWidth = Math.max(0.8, lastW * 0.6); ctx.beginPath(); ctx.moveTo((a.x + b.x) / 2, (a.y + b.y) / 2); ctx.lineTo(b.x, b.y); ctx.stroke(); } pts = []; };
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => cv.addEventListener(t, end));
+    sh.querySelector('#pClr').onclick = size;
+    sh.querySelector('#pCancel').onclick = () => { delete $('modal').dataset.lock; closeSheet(); };
+    function trimmed() {
+      const w = cv.width, h = cv.height, px = ctx.getImageData(0, 0, w, h).data; let x0 = w, y0 = h, x1 = 0, y1 = 0;
+      for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) if (px[(y * w + x) * 4 + 3] > 10) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+      if (x1 <= x0) return null; const pad = 10, sw = x1 - x0 + pad * 2, sh2 = y1 - y0 + pad * 2, sc = Math.min(1, 900 / sw, 380 / sh2);
+      const o = document.createElement('canvas'); o.width = Math.round(sw * sc); o.height = Math.round(sh2 * sc);
+      o.getContext('2d').drawImage(cv, x0 - pad, y0 - pad, sw, sh2, 0, 0, o.width, o.height); return o.toDataURL('image/png');
+    }
+    save.onclick = async () => {
+      const img = dirty && trimmed(); if (!img) return; save.disabled = true; sh.querySelector('#pMsg').textContent = 'Menyimpan...';
+      try {
+        await api('docs/' + DOC_ID + '/sign', { method: 'POST', body: JSON.stringify({ key: ME_KEY, k: TOK, img }) });
+        delete $('modal').dataset.lock; closeSheet(); confetti(); toast('✅ Tanda tangan tersimpan di notula');
+        await afterChange();
+        const s = me(); setTimeout(() => $('pg' + s.page)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
+      } catch (e) { sh.querySelector('#pMsg').textContent = '⚠️ Gagal menyimpan: ' + e.message; save.disabled = false; }
+    };
+  });
+}
+
+// ================= UNDUH PDF =================
+async function downloadPdf() {
+  const b = $('dl'); const t = b.textContent; b.disabled = true; b.textContent = 'Menyiapkan PDF...';
   try {
     const { PDFDocument } = PDFLib;
-    const pdf = await PDFDocument.load(await (await fetch('notula.pdf', { cache: 'no-store' })).arrayBuffer());
-    const pages = pdf.getPages();
-    for (const s of SIGNERS.filter(s => data[s.key])) {
-      const pg = pages[s.page - 1]; const { width: W, height: H } = pg.getSize();
-      const png = await pdf.embedPng(data[s.key].img);
-      const bw = s.w*W, bh = s.h*H, sc = Math.min(bw/png.width, bh/png.height);
-      const dw = png.width*sc, dh = png.height*sc;
-      pg.drawImage(png, { x: s.x*W + (bw-dw)/2, y: H - (s.y*H + bh), width: dw, height: dh });
+    const pdf = await PDFDocument.load(await (await fetch('/api/docs/' + DOC_ID + '/pdf', { cache: 'no-store' })).arrayBuffer());
+    const pages = pdf.getPages(); let n = 0;
+    for (const s of S.doc.signers.filter(sigOk)) {
+      const pg = pages[s.page - 1]; if (!pg) continue; const { width: W, height: H } = pg.getSize();
+      const png = await pdf.embedPng(S.sigs[s.key].img); const bw = s.w * W, bh = s.h * H, sc = Math.min(bw / png.width, bh / png.height);
+      const dw = png.width * sc, dh = png.height * sc; pg.drawImage(png, { x: s.x * W + (bw - dw) / 2, y: H - (s.y * H + bh), width: dw, height: dh }); n++;
     }
-    pdf.setTitle('Notula Rapat Monitoring Lanjutan Pengampuan 13 November 2026');
-    const blob = new Blob([await pdf.save()], { type: 'application/pdf' });
-    const done = SIGNERS.filter(s => data[s.key]).length;
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-    a.download = 'Notula_13_November_2026_Bertanda_Tangan.pdf'; document.body.appendChild(a); a.click(); a.remove();
-    m.className = 'msg ok'; m.textContent = 'PDF berhasil dibuat (' + done + ' dari ' + SIGNERS.length + ' tanda tangan).';
-  } catch (e) { m.className = 'msg err'; m.textContent = 'Gagal membuat PDF: ' + e.message; }
-};
+    pdf.setTitle(S.doc.title);
+    const blob = new Blob([await pdf.save()], { type: 'application/pdf' }), a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = (S.doc.id || 'notula') + (S.doc.ver > 1 ? '_revisi' + (S.doc.ver - 1) : '') + '_ttd.pdf';
+    document.body.appendChild(a); a.click(); a.remove(); toast('📄 PDF dibuat (' + n + ' dari ' + S.doc.signers.length + ' tanda tangan)');
+  } catch (e) { toast('⚠️ Gagal membuat PDF: ' + e.message); }
+  b.disabled = false; b.textContent = t;
+}
 
-load();
-setInterval(() => { if (!document.hidden && !$('pad').classList.contains('on')) load(); }, 20000);
+// ================= ADMIN: kelola satu notula =================
+async function loadAdmin() {
+  try { S.admin = (await api('docs/' + DOC_ID + '/admin?k=' + encodeURIComponent(ADMIN))).doc; } catch (e) { $('adminCard').innerHTML = '<div class="card"><p>Akses admin ditolak: ' + esc(e.message) + '</p></div>'; return; }
+  renderAdmin();
+}
+const linkFor = s => location.origin + '/?d=' + encodeURIComponent(DOC_ID) + '&n=' + encodeURIComponent(s.key) + '&k=' + encodeURIComponent(s.token);
+function renderAdmin() {
+  const a = S.admin;
+  $('adminCard').innerHTML = `<div class="card"><h2>🛠️ Panel Admin</h2>
+    <div class="tabs"><button class="tab on" data-t="links">🔗 Link</button><button class="tab" data-t="rev">📄 Revisi</button><button class="tab" data-t="pos">🎯 Posisi ttd</button><button class="tab" data-t="more">⚙️ Lainnya</button></div>
+    <div data-p="links">${a.signers.map(s => `<div class="row"><div class="grow"><b>${esc(s.name)}</b><span class="small">${esc(s.role)}</span>
+      ${s.token ? `<div class="linkbox"><input type="text" readonly value="${esc(linkFor(s))}"></div>` : '<div class="small">Link lama sudah dibagikan sebelumnya (tetap berlaku). Tekan Link baru jika ingin membuat ulang.</div>'}</div>
+      <div class="btns" style="flex-direction:column;flex:none">${s.token ? `<button class="btn sm" data-copy="${esc(s.key)}">Salin</button><a class="btn sm sec" style="text-decoration:none;text-align:center" target="_blank" href="https://wa.me/?text=${encodeURIComponent(waText(s))}">WA</a>` : ''}
+      <button class="btn sm sec" data-regen="${esc(s.key)}">Link baru</button></div></div>`).join('')}
+      <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button></div></div>
+    <div data-p="rev" class="hidden"><p>Setelah koreksi ditindaklanjuti, unggah PDF notula versi revisi. Tanda tangan sebelumnya otomatis ditandai <b>perlu tanda tangan ulang</b>.</p>
+      <input type="file" id="revFile" accept="application/pdf"><label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:10px 0"><input type="checkbox" id="revDone" checked> Tandai semua koreksi terbuka sebagai selesai</label>
+      <div class="btns"><button class="btn" id="revUp">⬆️ Unggah revisi</button></div></div>
+    <div data-p="pos" class="hidden"><p>Atur ulang letak kolom tanda tangan pada halaman notula.</p><div class="btns"><button class="btn" id="posEdit">🎯 Buka pengatur posisi</button></div></div>
+    <div data-p="more" class="hidden"><div class="btns"><a class="btn sec" style="text-decoration:none;text-align:center" href="/?admin=${encodeURIComponent(ADMIN)}">🏠 Semua notula</a><button class="btn danger" id="delDoc">🗑️ Hapus notula ini</button></div></div></div>`;
+  const root = $('adminCard');
+  root.querySelectorAll('.tab').forEach(t => t.onclick = () => { root.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); root.querySelectorAll('[data-p]').forEach(p => p.classList.toggle('hidden', p.dataset.p !== t.dataset.t)); });
+  root.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copy(linkFor(a.signers.find(s => s.key === b.dataset.copy))));
+  root.querySelectorAll('[data-regen]').forEach(b => b.onclick = async () => {
+    if (!confirm('Buat link baru? Link lama untuk nama ini tidak berlaku lagi.')) return;
+    try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, regenerate: b.dataset.regen }) }); toast('🔗 Link baru dibuat'); loadAdmin(); } catch (e) { toast('⚠️ ' + e.message); }
+  });
+  $('copyAll').onclick = () => copy(a.signers.filter(s => s.token).map(s => `${s.name}:\n${linkFor(s)}`).join('\n\n'));
+  $('revUp').onclick = async () => {
+    const f = $('revFile').files[0]; if (!f) { toast('Pilih berkas PDF revisi dulu'); return; }
+    $('revUp').disabled = true; $('revUp').textContent = 'Mengunggah...';
+    try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, pdf: await fileB64(f), resolveAll: $('revDone').checked }) }); toast('✅ Revisi diunggah'); location.reload(); }
+    catch (e) { toast('⚠️ ' + e.message); $('revUp').disabled = false; $('revUp').textContent = '⬆️ Unggah revisi'; }
+  };
+  $('posEdit').onclick = () => openPlacer(S.admin.signers, '/api/docs/' + DOC_ID + '/pdf?v=' + S.doc.ver, async list => {
+    await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, signers: list }) }); toast('✅ Posisi disimpan'); location.reload();
+  });
+  $('delDoc').onclick = async () => {
+    if (!confirm('Hapus notula ini beserta semua tanda tangan dan koreksinya? Tindakan ini tidak bisa dibatalkan.')) return;
+    try { await api('docs/' + DOC_ID + '/admin', { method: 'DELETE', body: JSON.stringify({ k: ADMIN }) }); location.href = '/?admin=' + encodeURIComponent(ADMIN); } catch (e) { toast('⚠️ ' + e.message); }
+  };
+}
+const waText = s => `Selamat pagi Bapak/Ibu ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`;
+async function resetSig(key) {
+  if (!confirm('Hapus tanda tangan ini?')) return;
+  try { await api('docs/' + DOC_ID + '/sign', { method: 'POST', body: JSON.stringify({ key, k: ADMIN, action: 'reset' }) }); toast('Tanda tangan dihapus'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
+}
+function fileB64(f) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(f); }); }
+
+// ================= PENGATUR POSISI KOLOM TTD =================
+function openPlacer(signers, pdfUrl, onSave) {
+  const list = signers.map(s => ({ ...s, w: s.w || 0.26, h: s.h || 0.06 }));
+  let cur = 0;
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:45;overflow:auto';
+  wrap.innerHTML = `<div style="position:sticky;top:0;z-index:2;background:#fff;border-bottom:1px solid var(--line);padding:10px 12px calc(10px);padding-top:calc(10px + env(safe-area-inset-top))">
+    <div class="small" style="margin-bottom:6px">Pilih nama, lalu <b>ketuk</b> letak kolom ttd di halaman. Geser kotak untuk memindah, tarik bulatan biru untuk mengubah ukuran.</div>
+    <div class="chips" id="plNames"></div>
+    <div class="btns" style="margin-top:8px"><button class="btn sec" id="plCancel">Batal</button><button class="btn" id="plSave">💾 Simpan posisi</button></div></div>
+    <div style="max-width:860px;margin:0 auto;padding:12px" id="plPages"></div>`;
+  document.body.appendChild(wrap);
+  const names = wrap.querySelector('#plNames');
+  const drawNames = () => { names.innerHTML = list.map((s, i) => `<button class="chip ${i === cur ? 'on' : ''}" data-i="${i}">${s.x || s.y ? '✓ ' : ''}${esc(s.name)}</button>`).join(''); names.querySelectorAll('.chip').forEach(b => b.onclick = () => { cur = +b.dataset.i; drawNames(); drawBoxes(); }); };
+  let pls = [];
+  function drawBoxes() {
+    pls.forEach(p => p.ov.querySelectorAll('.sbox').forEach(e => e.remove()));
+    list.forEach((s, i) => {
+      if (!s.x && !s.y) return; const ov = pls[s.page - 1]?.ov; if (!ov) return;
+      const b = document.createElement('div'); b.className = 'sbox' + (i === cur ? ' on' : ''); place(b, s.x, s.y, s.w, s.h);
+      b.innerHTML = esc(s.name) + '<i class="rz"></i>'; ov.appendChild(b);
+      let mode = null, st = null;
+      b.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); cur = i; drawNames(); b.setPointerCapture(e.pointerId); const r = ov.getBoundingClientRect(); mode = e.target.classList.contains('rz') ? 'rz' : 'mv'; st = { r, x: e.clientX, y: e.clientY, s: { ...s } }; ov.querySelectorAll('.sbox').forEach(x => x.classList.toggle('on', x === b)); });
+      b.addEventListener('pointermove', e => { if (!mode) return; const dx = (e.clientX - st.x) / st.r.width, dy = (e.clientY - st.y) / st.r.height;
+        if (mode === 'mv') { s.x = Math.max(0, Math.min(1 - s.w, st.s.x + dx)); s.y = Math.max(0, Math.min(1 - s.h, st.s.y + dy)); }
+        else { s.w = Math.max(0.06, Math.min(1 - s.x, st.s.w + dx)); s.h = Math.max(0.02, Math.min(1 - s.y, st.s.h + dy)); }
+        place(b, s.x, s.y, s.w, s.h); });
+      b.addEventListener('pointerup', () => mode = null);
+    });
+  }
+  (async () => {
+    const holder = wrap.querySelector('#plPages'); const keep = PAGES, keepPdf = PDF;
+    await renderPdf(holder, pdfUrl); pls = PAGES; PAGES = keep; PDF = keepPdf;
+    pls.forEach((p, idx) => p.wrap.addEventListener('pointerdown', e => {
+      if (e.target.closest('.sbox')) return; const r = p.wrap.getBoundingClientRect(), s = list[cur];
+      s.page = idx + 1; s.x = Math.max(0, Math.min(1 - s.w, (e.clientX - r.left) / r.width - s.w / 2)); s.y = Math.max(0, Math.min(1 - s.h, (e.clientY - r.top) / r.height - s.h / 2));
+      if (cur < list.length - 1 && list.slice(cur + 1).some(x => !x.x && !x.y)) cur = list.findIndex((x, j) => j > cur && !x.x && !x.y);
+      drawNames(); drawBoxes();
+    }));
+    drawNames(); drawBoxes();
+  })();
+  wrap.querySelector('#plCancel').onclick = () => wrap.remove();
+  wrap.querySelector('#plSave').onclick = async () => {
+    const miss = list.filter(s => !s.x && !s.y); if (miss.length && !confirm(miss.length + ' nama belum diberi posisi. Tetap simpan?')) return;
+    const btn = wrap.querySelector('#plSave'); btn.disabled = true; btn.textContent = 'Menyimpan...';
+    try { await onSave(list.map(({ key, name, role, page, x, y, w, h }) => ({ key, name, role, page, x, y, w, h }))); wrap.remove(); }
+    catch (e) { toast('⚠️ ' + e.message); btn.disabled = false; btn.textContent = '💾 Simpan posisi'; }
+  };
+}
+
+// ================= ADMIN: daftar & buat notula =================
+async function showAdminHome() {
+  $('hTitle').textContent = 'Kelola Notula'; $('hSub').textContent = 'Balai Harta Peninggalan Medan · Admin';
+  app.innerHTML = '<div class="loading"><div class="spin"></div>Memuat daftar notula...</div>';
+  let docs;
+  try { docs = await api('docs?k=' + encodeURIComponent(ADMIN)); } catch (e) { app.innerHTML = '<div class="card"><p>Akses admin ditolak: ' + esc(e.message) + '</p></div>'; return; }
+  app.innerHTML = `<div class="card"><div class="btns"><button class="btn" id="newDoc">➕ Buat notula baru</button></div></div>
+    <div class="card"><h2>Daftar Notula (${docs.length})</h2>${docs.length ? docs.map(d => `<div class="row"><div class="grow"><b>${esc(d.title)}</b><span class="small">${esc(d.subtitle || '')}</span>
+      <div class="progress" style="margin:6px 0 0"><i style="width:${d.signers.length ? d.signed / d.signers.length * 100 : 0}%"></i></div>
+      <span class="small">✍️ ${d.signed}/${d.signers.length} ttd${d.koreksiBaru ? ' · ✏️ ' + d.koreksiBaru + ' koreksi terbuka' : ''}${d.ver > 1 ? ' · revisi ke-' + (d.ver - 1) : ''}</span></div>
+      <a class="btn sm" style="text-decoration:none" href="/?d=${encodeURIComponent(d.id)}&admin=${encodeURIComponent(ADMIN)}">Kelola</a></div>`).join('') : '<div class="empty">Belum ada notula.</div>'}</div>`;
+  $('newDoc').onclick = newDocWizard;
+}
+function newDocWizard() {
+  app.innerHTML = `<div class="card"><h2>➕ Notula baru</h2>
+    <label class="f">Berkas PDF notula</label><input type="file" id="nFile" accept="application/pdf">
+    <label class="f">Judul</label><input type="text" id="nTitle" placeholder="Contoh: Notula Rapat Koordinasi Pengampuan">
+    <label class="f">Keterangan (tanggal, tempat)</label><input type="text" id="nSub" placeholder="Contoh: Balai Harta Peninggalan Medan · Senin, 16 November 2026">
+    <label class="f">Daftar penanda tangan <span style="font-weight:normal">(satu nama per baris, format: Nama - Jabatan)</span></label>
+    <textarea id="nSigners" style="min-height:150px" placeholder="Syuhada - Kurator Keperdataan Ahli Madya&#10;Syafriadi Lubis - Kepala Balai Harta Peninggalan Medan&#10;Shela Natasha - Tim BHP Medan"></textarea>
+    <div class="btns" style="margin-top:12px"><a class="btn sec" style="text-decoration:none;text-align:center" href="/?admin=${encodeURIComponent(ADMIN)}">Batal</a><button class="btn" id="nNext">Lanjut: atur posisi ttd 🎯</button></div></div>`;
+  $('nFile').onchange = () => { const f = $('nFile').files[0]; if (f && !$('nTitle').value) $('nTitle').value = f.name.replace(/\.pdf$/i, '').replace(/[_]+/g, ' '); };
+  $('nNext').onclick = () => {
+    const f = $('nFile').files[0], title = $('nTitle').value.trim();
+    const signers = $('nSigners').value.split('\n').map(l => l.trim()).filter(Boolean).map(l => { const [name, ...r] = l.split(/\s+[-–]\s+|\t|;/); return { name: name.trim(), role: r.join(' ').trim(), page: 1, x: 0, y: 0 }; });
+    if (!f) return toast('Pilih berkas PDF dulu'); if (!title) return toast('Isi judul dulu'); if (!signers.length) return toast('Isi minimal satu penanda tangan');
+    const url = URL.createObjectURL(f);
+    openPlacer(signers, url, async list => {
+      const r = await api('docs', { method: 'POST', body: JSON.stringify({ k: ADMIN, title, subtitle: $('nSub').value.trim(), pdf: await fileB64(f), signers: list }) });
+      confetti(); location.href = '/?d=' + encodeURIComponent(r.id) + '&admin=' + encodeURIComponent(ADMIN);
+    });
+  };
+}
+
+// ================= MULAI =================
+if (ADMIN && !DOC_ID) showAdminHome();
+else if (DOC_ID) showDoc();
+else { app.innerHTML = '<div class="card"><div class="big-emoji">✍️</div><p style="text-align:center">Silakan buka link tanda tangan yang dikirimkan kepada Bapak/Ibu.</p></div>'; }
 </script>
 </body>
 </html>
