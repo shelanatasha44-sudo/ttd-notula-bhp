@@ -43,14 +43,10 @@ const PASS_HASH = '9708aae5022ad8ae652b713c37cd4bca3e41ce2278504094a91400e37afa2
 // ---------- notifikasi email (berjalan di latar belakang, tidak menunggu) ----------
 // Dikirim lewat FormSubmit ke email admin. Email pertama berisi tautan aktivasi yang perlu diklik sekali.
 const NOTIFY_EMAIL = 'shelanatasha44@gmail.com';
-function notify(ctx, env, origin, subject, fields) {
-  const to = env.NOTIFY_EMAIL || NOTIFY_EMAIL;
-  const job = fetch('https://formsubmit.co/ajax/' + encodeURIComponent(to), {
-    method: 'POST',
-    headers: { 'content-type': 'application/json', accept: 'application/json', origin, referer: origin + '/' },
-    body: JSON.stringify({ _subject: subject, _template: 'table', _captcha: 'false', ...fields }),
-  }).catch(() => {});
-  if (ctx && ctx.waitUntil) ctx.waitUntil(job);
+// Server menyiapkan isi notifikasi; browser pengguna yang mengirimnya ke FormSubmit secara diam-diam
+// (FormSubmit membatasi permintaan dari IP server Cloudflare).
+function notify(env, subject, fields) {
+  return { to: env.NOTIFY_EMAIL || NOTIFY_EMAIL, subject: String(subject).slice(0, 200), fields };
 }
 const wib = iso => new Date(iso).toLocaleString('id-ID', { timeZone: 'Asia/Jakarta', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }) + ' WIB';
 async function isAdmin(k) { if (!k) return false; const h = await sha256(k); return h === ADMIN_HASH || h === PASS_HASH; }
@@ -184,18 +180,9 @@ export async function onRequest(ctx) {
 
   try {
     // ---------- daftar & buat notula (admin) ----------
-    // tes notifikasi email (dibatasi 1x per 2 menit), memicu email aktivasi FormSubmit
     if (parts[0] === 'notify-test' && m === 'GET') {
-      if (await env.TTD.get('notifytest')) return err('Tunggu 2 menit sebelum tes lagi', 429);
-      await env.TTD.put('notifytest', '1', { expirationTtl: 120 });
-      const to = env.NOTIFY_EMAIL || NOTIFY_EMAIL;
-      const r = await fetch('https://formsubmit.co/ajax/' + encodeURIComponent(to), {
-        method: 'POST',
-        headers: { 'content-type': 'application/json', accept: 'application/json', origin, referer: origin + '/' },
-        body: JSON.stringify({ _subject: '🔔 Tes notifikasi web tanda tangan notula', _template: 'table', _captcha: 'false', Pesan: 'Jika email ini masuk, notifikasi koreksi dan tanda tangan sudah aktif.', Waktu: wib(new Date().toISOString()) }),
-      });
-      const text = await r.text();
-      return json({ status: r.status, formsubmit: text.slice(0, 600) });
+      if (!(await isAdmin(k))) return err('Khusus admin', 403);
+      return json({ notify: notify(env, '🔔 Tes notifikasi web tanda tangan notula', { Pesan: 'Jika email ini masuk, notifikasi koreksi dan tanda tangan sudah aktif.', Waktu: wib(new Date().toISOString()) }) });
     }
     if (parts[0] === 'pegawai' && m === 'GET') {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);
@@ -302,10 +289,10 @@ export async function onRequest(ctx) {
       const first = !(await env.TTD.get('sig:' + id + ':' + s.key));
       await env.TTD.put('sig:' + id + ':' + s.key, JSON.stringify(rec));
       const sigs = await getSigs(env, d), done = d.signers.filter(x => sigs[x.key] && sigs[x.key].ver === d.ver).length;
-      notify(ctx, env, origin, `✍️ ${s.name} ${first ? 'menandatangani' : 'memperbarui tanda tangan'} · ${d.title}`.slice(0, 200), {
+      const nt = notify(env, `✍️ ${s.name} ${first ? 'menandatangani' : 'memperbarui tanda tangan'} · ${d.title}`.slice(0, 200), {
         Notula: d.title, Penanda_tangan: s.name + (s.role ? ' (' + s.role + ')' : ''), Waktu: wib(rec.at),
         Progres: done + ' dari ' + d.signers.length + ' sudah menandatangani', Buka_notula: origin + '/?d=' + encodeURIComponent(id) });
-      return json({ ok: true, at: rec.at });
+      return json({ ok: true, at: rec.at, notify: nt });
     }
 
     // ---------- koreksi ----------
@@ -325,11 +312,11 @@ export async function onRequest(ctx) {
         if (kor.length > 1000) return err('Koreksi terlalu banyak');
         await putKor(env, id, kor);
         const added = kor.slice(-items.length);
-        notify(ctx, env, origin, `✏️ ${items.length} koreksi baru dari ${s.name} · ${d.title}`.slice(0, 200), {
+        const nt = notify(env, `✏️ ${items.length} koreksi baru dari ${s.name} · ${d.title}`.slice(0, 200), {
           Notula: d.title, Dari: s.name + (s.role ? ' (' + s.role + ')' : ''), Waktu: wib(now),
           Koreksi: added.map((c, i) => `${i + 1}. [Hal. ${c.page}] ${c.from ? c.from + ' → ' : ''}${c.to || ''}${c.note ? ' (' + c.note + ')' : ''}`).join('\n'),
           Tindak_lanjut: origin + '/?d=' + encodeURIComponent(id) });
-        return json({ ok: true, count: items.length });
+        return json({ ok: true, count: items.length, notify: nt });
       }
       if (m === 'PATCH') {
         const c = kor.find(x => x.id === body.id);

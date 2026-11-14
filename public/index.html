@@ -530,6 +530,7 @@ async function sendKoreksi() {
   $('kbSend').disabled = true;
   try {
     const r = await api('docs/' + DOC_ID + '/koreksi', { method: 'POST', body: JSON.stringify({ key: ME_KEY, k: TOK, items: drafts }) });
+    sendNotify(r.notify);
     drafts = []; saveDrafts(); exitKoreksi(); confetti(); await afterChange();
     openSheet(`<div class="big-emoji">🎉</div><h3 style="text-align:center">Terima kasih! ${r.count} koreksi terkirim</h3>
       <p class="lead" style="text-align:center">Admin akan menindaklanjuti dan Bapak/Ibu bisa memantau statusnya di halaman ini. Mau langsung menandatangani, atau menunggu notula direvisi?</p>
@@ -596,7 +597,8 @@ function openPad() {
     save.onclick = async () => {
       const img = dirty && trimmed(); if (!img) return; save.disabled = true; sh.querySelector('#pMsg').textContent = 'Menyimpan...';
       try {
-        await api('docs/' + DOC_ID + '/sign', { method: 'POST', body: JSON.stringify({ key: ME_KEY, k: TOK, img }) });
+        const sr = await api('docs/' + DOC_ID + '/sign', { method: 'POST', body: JSON.stringify({ key: ME_KEY, k: TOK, img }) });
+        sendNotify(sr.notify);
         delete $('modal').dataset.lock; closeSheet(); confetti(); toast('✅ Tanda tangan tersimpan di notula');
         await afterChange();
         const s = me(); setTimeout(() => $('pg' + s.page)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 400);
@@ -605,6 +607,14 @@ function openPad() {
   });
 }
 
+// ================= NOTIFIKASI EMAIL (diam-diam, tidak mengganggu pengguna) =================
+function sendNotify(n) {
+  if (!n || !n.to) return Promise.resolve(null);
+  return fetch('https://formsubmit.co/ajax/' + encodeURIComponent(n.to), {
+    method: 'POST', keepalive: true, headers: { 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify({ _subject: n.subject, _template: 'table', _captcha: 'false', ...n.fields }),
+  }).then(r => r.json()).catch(() => null);
+}
 // ================= UNDUH PDF =================
 function loadPdfLib() {
   if (window.PDFLib) return Promise.resolve();
@@ -649,7 +659,7 @@ function renderAdmin() {
     <div data-p="rev" class="hidden"><p>Unggah PDF revisi untuk menimpa notula saat ini. Link notula dan link tanda tangan tidak berubah.</p>
       <div class="btns"><button class="btn" id="revUp">⬆️ Unggah PDF revisi</button></div></div>
     <div data-p="pos" class="hidden"><p>Atur ulang letak kolom tanda tangan pada halaman notula.</p><div class="btns"><button class="btn" id="posEdit">🎯 Buka pengatur posisi</button></div></div>
-    <div data-p="more" class="hidden"><div class="btns"><a class="btn sec" style="text-decoration:none;text-align:center" href="${adminHome()}">🏠 Semua notula</a><button class="btn danger" id="delDoc">🗑️ Hapus notula ini</button></div></div></div>`;
+    <div data-p="more" class="hidden"><p class="small" style="margin:0 0 8px">Notifikasi koreksi dan tanda tangan dikirim ke email admin. Tekan tes untuk memicu email aktivasi pertama kali.</p><div class="btns" style="margin-bottom:10px"><button class="btn sec" id="ntTest">🔔 Tes notifikasi email</button></div><div class="btns"><a class="btn sec" style="text-decoration:none;text-align:center" href="${adminHome()}">🏠 Semua notula</a><button class="btn danger" id="delDoc">🗑️ Hapus notula ini</button></div></div></div>`;
   const root = $('adminCard');
   root.querySelectorAll('.tab').forEach(t => t.onclick = () => { root.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); root.querySelectorAll('[data-p]').forEach(p => p.classList.toggle('hidden', p.dataset.p !== t.dataset.t)); });
   root.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copy(linkFor(a.signers.find(s => s.key === b.dataset.copy))));
@@ -660,6 +670,17 @@ function renderAdmin() {
   $('copyView').onclick = () => copy(viewLink());
   $('copyAll').onclick = () => copy(a.signers.filter(s => s.token).map(s => `${s.name}:\n${linkFor(s)}`).join('\n\n'));
   $('revUp').onclick = () => openRevision(false);
+  $('ntTest').onclick = async () => {
+    $('ntTest').disabled = true;
+    try {
+      const n = (await api('notify-test?k=' + encodeURIComponent(ADMIN))).notify, r = await sendNotify(n);
+      const m = r && r.message ? r.message : '';
+      if (r && (r.success === true || r.success === 'true')) toast('✅ Email tes terkirim ke ' + n.to);
+      else if (/activat/i.test(m)) toast('📩 Cek email ' + n.to + ' lalu klik Activate Form (cek juga Spam)', 6000);
+      else toast('⚠️ ' + (m || 'Email tes belum terkirim, coba lagi sebentar'), 6000);
+    } catch (e) { toast('⚠️ ' + e.message); }
+    $('ntTest').disabled = false;
+  };
   renderApproved();
   $('posEdit').onclick = () => openPlacer(S.admin.signers, pdfUrl(), async list => {
     await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, signers: list }) }); toast('✅ Posisi disimpan'); location.reload();
