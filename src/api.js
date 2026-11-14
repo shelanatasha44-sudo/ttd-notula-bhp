@@ -55,8 +55,25 @@ async function getIndex(env) { return (await env.TTD.get('docs', 'json')) || [];
 async function setIndex(env, ids) { await env.TTD.put('docs', JSON.stringify([...new Set(ids)])); }
 async function getDoc(env, id) {
   let d = await env.TTD.get('doc:' + id, 'json');
-  if (!d && SEEDS.some(x => x.id === id)) d = await seedDoc(env, SEEDS.find(x => x.id === id));
+  const sd = SEEDS.find(x => x.id === id);
+  if (!d && sd) d = await seedDoc(env, sd);
+  else if (d && sd && (sd.rev || 1) > (d.seedRev || 1)) d = await upgradeSeed(env, d, sd);
   return d;
+}
+// Revisi notula awal dari kode: PDF ditimpa, posisi kolom ttd diperbarui, link & token tetap sama
+const upgrading = {};
+function upgradeSeed(env, d, sd) {
+  if (upgrading[d.id]) return upgrading[d.id];
+  return (upgrading[d.id] = (async () => {
+    await env.TTD.put('pdf:' + d.id, sd.pdf);
+    for (const s of d.signers) {
+      const n = sd.signers.find(x => x.key === s.key);
+      if (n) Object.assign(s, { page: n.page, x: n.x, y: n.y, w: n.w, h: n.h, role: n.role || s.role });
+    }
+    d.ver = (d.ver || 1) + 1; d.seedRev = sd.rev; d.updated = new Date().toISOString();
+    await putDoc(env, d);
+    return d;
+  })());
 }
 async function putDoc(env, d) { await env.TTD.put('doc:' + d.id, JSON.stringify(d)); }
 async function ensureSeeds(env) { for (const sd of SEEDS) await getDoc(env, sd.id); }
@@ -66,7 +83,7 @@ const seeding = {};
 function seedDoc(env, sd) {
   if (seeding[sd.id]) return seeding[sd.id];
   return (seeding[sd.id] = (async () => {
-    const d = { id: sd.id, no: sd.no, title: sd.title, subtitle: sd.subtitle, ver: 1, created: sd.created, updated: new Date().toISOString(),
+    const d = { id: sd.id, no: sd.no, seedRev: sd.rev || 1, title: sd.title, subtitle: sd.subtitle, ver: 1, created: sd.created, updated: new Date().toISOString(),
       signers: await ensureTokens(normSigners(sd.signers)) };
     await env.TTD.put('pdf:' + d.id, sd.pdf);
     await finalizeDoc(env, d);
