@@ -131,6 +131,19 @@ export async function onRequest(ctx) {
 
   try {
     // ---------- daftar & buat notula (admin) ----------
+    // daftar publik (tanpa link/token) untuk halaman depan
+    if (parts[0] === 'list' && m === 'GET') {
+      const ids = await getIndex(env);
+      if (!ids.includes(LEGACY_ID)) { await getDoc(env, LEGACY_ID); ids.unshift(LEGACY_ID); }
+      const docs = [];
+      for (const id of ids) {
+        const d = await getDoc(env, id); if (!d) continue;
+        const sigs = await getSigs(env, d);
+        docs.push({ id: d.id, title: d.title, subtitle: d.subtitle, created: d.created, ver: d.ver,
+          total: d.signers.length, signed: Object.values(sigs).filter(x => x.ver === d.ver).length });
+      }
+      return json(docs.sort((a, b) => String(b.created).localeCompare(String(a.created))));
+    }
     if (parts[0] === 'docs' && parts.length === 1) {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);
       if (m === 'GET') {

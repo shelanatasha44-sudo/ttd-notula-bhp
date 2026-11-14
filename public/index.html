@@ -198,7 +198,7 @@ const ovOf = p => PAGES[p - 1]?.ov;
 
 // ---------------- sapaan otomatis ----------------
 function salam() {
-  const h = +new Date().toLocaleString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false });
+  const h = new Date().getHours(); // jam di perangkat yang membuka link
   return h >= 4 && h < 11 ? 'pagi' : h < 15 ? 'siang' : h < 18 ? 'sore' : 'malam';
 }
 function greet(s) {
@@ -710,7 +710,17 @@ function newDocWizard() {
 // ================= MULAI =================
 if (ADMIN && !DOC_ID) showAdminHome();
 else if (DOC_ID) showDoc();
-else { app.innerHTML = '<div class="card"><div class="big-emoji">✍️</div><p style="text-align:center">Silakan buka link tanda tangan yang dikirimkan kepada Bapak/Ibu.</p></div>'; }
+else showHome();
+async function showHome() {
+  $('hTitle').textContent = 'Notula Seksi Harta Peninggalan Wilayah II'; $('hSub').textContent = 'Balai Harta Peninggalan Medan';
+  document.title = 'Notula Wilayah II · BHP Medan';
+  let docs = [];
+  try { docs = await api('list'); } catch (e) { app.innerHTML = '<div class="card"><p>Daftar notula belum bisa dimuat: ' + esc(e.message) + '</p></div>'; return; }
+  app.innerHTML = `<div class="card"><p style="margin:0">✍️ Untuk menandatangani, gunakan link pribadi yang dikirimkan kepada Bapak/Ibu. Daftar di bawah hanya untuk melihat isi dan status notula.</p></div>
+    <div class="card"><h2>Daftar Notula (${docs.length})</h2>${docs.length ? docs.map(d => `<div class="row"><div class="grow"><b>${esc(d.title)}</b><span class="small">${esc(d.subtitle || '')}</span>
+      <div class="progress" style="margin:6px 0 0"><i style="width:${d.total ? d.signed / d.total * 100 : 0}%"></i></div><span class="small">✍️ ${d.signed}/${d.total} tanda tangan${d.ver > 1 ? ' · revisi ke-' + (d.ver - 1) : ''}</span></div>
+      <a class="btn sm" style="text-decoration:none" href="/?d=${encodeURIComponent(d.id)}">Buka</a></div>`).join('') : '<div class="empty">Belum ada notula.</div>'}</div>`;
+}
 </script>
 </body>
 </html>
