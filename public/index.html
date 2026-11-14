@@ -843,7 +843,11 @@ function openRevision(justApproved) {
     };
   });
 }
-const waText = s => `Selamat ${salam()} ${s.sapaan || 'Bapak/Ibu'} ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`;
+// pejabat (Kepala Kantor/Seksi/Subbagian, Kurator Ahli Madya): formal; pegawai lain (Sdr./Sdri.): santai tapi sopan
+const pejabatRole = r => /kepala|ahli madya/i.test(r || '');
+const waText = s => pejabatRole(s.role)
+  ? `Selamat ${salam()} ${s.sapaan || 'Bapak/Ibu'} ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`
+  : `Halo ${s.sapaan === 'Ibu' ? 'Sdri.' : 'Sdr.'} ${String(s.name).trim().split(/\s+/)[0]}, selamat ${salam()} 👋\n\n*${S.doc.title}* udh siap nih. Minta tolong dibaca dl terus ditandatangani lewat link ini ya:\n${linkFor(s)}\n\nKalau ada yg perlu dikoreksi, langsung tandai aja di situ. Makasih banyak ya! 🙏😊`;
 async function resetSig(key) {
   if (!confirm('Hapus tanda tangan ini?')) return;
   try { await api('docs/' + DOC_ID + '/sign', { method: 'POST', body: JSON.stringify({ key, k: ADMIN, action: 'reset' }) }); toast('Tanda tangan dihapus'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
