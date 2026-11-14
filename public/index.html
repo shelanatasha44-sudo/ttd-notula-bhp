@@ -99,6 +99,9 @@ canvas#cv{width:100%;height:230px;border:1.5px dashed #9aa4b5;border-radius:12px
 .loading{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:14px;padding:20px;justify-content:center}
 .spin{width:18px;height:18px;border:3px solid #cdd3dd;border-top-color:var(--brand);border-radius:50%;animation:sp 1s linear infinite}
 @keyframes sp{to{transform:rotate(360deg)}}
+.hello{position:fixed;left:50%;top:calc(70px + env(safe-area-inset-top));transform:translate(-50%,-12px);background:#fff;color:var(--ink);border:1px solid var(--line);border-left:5px solid var(--hl);border-radius:14px;padding:12px 16px;font-size:15px;line-height:1.45;box-shadow:0 10px 30px rgba(15,47,92,.22);z-index:58;opacity:0;transition:opacity .35s,transform .35s;max-width:92vw;width:max-content;pointer-events:none}
+.hello.on{opacity:1;transform:translate(-50%,0)}
+.hello b{color:var(--brand)}
 .hidden{display:none!important}
 </style>
 </head>
@@ -118,6 +121,7 @@ canvas#cv{width:100%;height:230px;border:1.5px dashed #9aa4b5;border-radius:12px
 
 <div class="modal" id="modal"><div class="sheet" id="sheet"></div></div>
 <div class="toast" id="toast"></div>
+<div class="hello" id="hello"></div>
 <canvas id="confetti"></canvas>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -191,6 +195,27 @@ async function renderPdf(container, url) {
 }
 const ovOf = p => PAGES[p - 1]?.ov;
 
+
+// ---------------- sapaan otomatis ----------------
+function salam() {
+  const h = +new Date().toLocaleString('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false });
+  return h >= 4 && h < 11 ? 'pagi' : h < 15 ? 'siang' : h < 18 ? 'sore' : 'malam';
+}
+function greet(s) {
+  const el = $('hello'); if (!el || !s) return;
+  el.innerHTML = `Selamat ${salam()} ${esc(s.sapaan || 'Bapak/Ibu')} <b>${esc(s.name)}</b>, apa cerita hari ini? ☺️`;
+  requestAnimationFrame(() => el.classList.add('on'));
+  setTimeout(() => el.classList.remove('on'), 2000);
+}
+// nama berkas yang rapi
+function fileName(suffix) {
+  const d = S.doc, m = (d.subtitle || '').match(/\d{1,2}\s+[A-Za-z]+\s+\d{4}/);
+  let base = d.title.replace(/[\\/:*?"<>|]+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (m && !base.includes(m[0])) base += ' - ' + m[0];
+  if (d.ver > 1) base += ' (Revisi ' + (d.ver - 1) + ')';
+  return base + (suffix ? ' ' + suffix : '') + '.pdf';
+}
+
 // ================= STATE =================
 let S = { doc: null, sigs: {}, kor: [], admin: null };
 let drafts = [];
@@ -208,7 +233,7 @@ let VIEW_TAB = 'status';
 async function showDoc() {
   try { await loadDoc(); } catch (e) { app.innerHTML = '<div class="card"><p>Notula tidak dapat dimuat: ' + esc(e.message) + '</p></div>'; return; }
   $('hTitle').textContent = S.doc.title; $('hSub').textContent = S.doc.subtitle || 'Balai Harta Peninggalan Medan';
-  document.title = S.doc.title + ' · Tanda Tangan';
+  document.title = fileName('').replace(/ ?\.pdf$/, '') + ' · Tanda Tangan';
   drafts = store.get(draftKey(), []);
   app.innerHTML = `
     <div id="meCard"></div>
@@ -222,6 +247,7 @@ async function showDoc() {
   await renderPdf($('pages'), '/api/docs/' + encodeURIComponent(DOC_ID) + '/pdf?v=' + S.doc.ver);
   renderOverlays();
   if (ADMIN) loadAdmin();
+  if (me()) greet(me());
   if (location.hash === '#ttd' && me()) startSignFlow();
   setInterval(refresh, 25000);
 }
@@ -249,8 +275,8 @@ function renderStatic() {
   if (ME_KEY && !m) mc.innerHTML = '<div class="card me"><p>Link tanda tangan tidak lengkap atau tidak berlaku. Mohon gunakan link yang dikirimkan kepada Bapak/Ibu.</p></div>';
   else if (m) {
     const ok = sigOk(m), myKor = S.kor.filter(c => c.by === m.key && c.status !== 'dibatalkan');
-    mc.innerHTML = `<div class="card me"><p>${ok ? `✅ Terima kasih, <b>${esc(m.name)}</b>. Tanda tangan Bapak/Ibu sudah tersimpan di notula (${fmt(S.sigs[m.key].at)}).`
-      : `Yth. <b>${esc(m.name)}</b>${m.role ? ' (' + esc(m.role) + ')' : ''}, silakan membaca notula di bawah, lalu tekan tombol berikut untuk menandatangani.`}</p>
+    mc.innerHTML = `<div class="card me"><p>${ok ? `✅ Terima kasih, ${esc(m.sapaan || 'Bapak/Ibu')} <b>${esc(m.name)}</b>. Tanda tangan ${esc(m.sapaan || 'Bapak/Ibu')} sudah tersimpan di notula (${fmt(S.sigs[m.key].at)}).`
+      : `Yth. ${esc(m.sapaan || 'Bapak/Ibu')} <b>${esc(m.name)}</b>${m.role ? ' (' + esc(m.role) + ')' : ''}, silakan membaca notula di bawah, lalu tekan tombol berikut untuk menandatangani.`}</p>
       ${myKor.length ? `<p class="small">Bapak/Ibu telah mengirim ${myKor.length} koreksi, ${myKor.filter(c => c.status === 'selesai').length} sudah ditindaklanjuti.</p>` : ''}
       <div class="btns"><button class="btn" id="goSign">${ok ? '🔁 Ulangi tanda tangan' : '✍️ Tanda tangani sekarang'}</button><button class="btn warn" id="goKor">✏️ Ajukan koreksi</button></div></div>`;
     $('goSign').onclick = startSignFlow; $('goKor').onclick = enterKoreksi;
@@ -542,7 +568,7 @@ async function downloadPdf() {
     }
     pdf.setTitle(S.doc.title);
     const blob = new Blob([await pdf.save()], { type: 'application/pdf' }), a = document.createElement('a');
-    a.href = URL.createObjectURL(blob); a.download = (S.doc.id || 'notula') + (S.doc.ver > 1 ? '_revisi' + (S.doc.ver - 1) : '') + '_ttd.pdf';
+    a.href = URL.createObjectURL(blob); a.download = fileName('(Bertanda Tangan)');
     document.body.appendChild(a); a.click(); a.remove(); toast('📄 PDF dibuat (' + n + ' dari ' + S.doc.signers.length + ' tanda tangan)');
   } catch (e) { toast('⚠️ Gagal membuat PDF: ' + e.message); }
   b.disabled = false; b.textContent = t;
@@ -590,7 +616,7 @@ function renderAdmin() {
     try { await api('docs/' + DOC_ID + '/admin', { method: 'DELETE', body: JSON.stringify({ k: ADMIN }) }); location.href = '/?admin=' + encodeURIComponent(ADMIN); } catch (e) { toast('⚠️ ' + e.message); }
   };
 }
-const waText = s => `Selamat pagi Bapak/Ibu ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`;
+const waText = s => `Selamat ${salam()} ${s.sapaan || 'Bapak/Ibu'} ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`;
 async function resetSig(key) {
   if (!confirm('Hapus tanda tangan ini?')) return;
   try { await api('docs/' + DOC_ID + '/sign', { method: 'POST', body: JSON.stringify({ key, k: ADMIN, action: 'reset' }) }); toast('Tanda tangan dihapus'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }

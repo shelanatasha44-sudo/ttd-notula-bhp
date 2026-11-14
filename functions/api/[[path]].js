@@ -9,6 +9,16 @@
 
 const ADMIN_HASH = '5085f6ac55a05a54ce1c8c743c5e74d72a63b28dcc8efc8eb0d5301d59dada41';
 const LEGACY_ID = 'notula-20261113';
+// Sapaan pegawai BHP Medan (dari digit ke-15 NIP pada sheet Daftar Pegawai: 1 = Bapak, 2 = Ibu)
+const SAPAAN = {"syafriadilubis": "Bapak", "nelsydepari": "Ibu", "lusianatarihoran": "Ibu", "elsinthadamayanti": "Ibu", "budiyanto": "Bapak", "syuhada": "Bapak", "dartimnovmtharahap": "Bapak", "marianibrmarbun": "Ibu", "tumiarsimanjorang": "Ibu", "nanangsuryapurnama": "Bapak", "titinwahyunasaridongoran": "Ibu", "jokoprabowo": "Bapak", "dianstevanytongli": "Ibu", "mtaufikrahman": "Bapak", "shelanatasha": "Ibu", "hutrizebua": "Bapak", "nurfairuzdibanasution": "Ibu", "diajengkartikasari": "Ibu", "rifalsaptahadi": "Bapak", "andreyosuasurbakti": "Bapak", "teukumeurahalbar": "Bapak", "hartoalfredosiregar": "Bapak", "annisadwimarina": "Ibu", "elsyindriani": "Ibu", "yusrilihzamahendra": "Bapak", "nindia": "Ibu", "naekparlindungansibuea": "Bapak", "bettyirawatisinaga": "Ibu", "adelinairmadewitasiagian": "Ibu", "agniramaniyamaharani": "Ibu", "tridolasiregar": "Ibu", "febrinasiringoringo": "Ibu", "indriananurkamsiah": "Ibu", "royalexander": "Bapak"};
+const normName = n => String(n || '').replace(/,.*$/, '').replace(/\b(Dr|Drs|Ir|H|Hj)\.?\s+/gi, '').toLowerCase().replace(/[^a-z]/g, '');
+function sapaanOf(name, given) {
+  if (given === 'Bapak' || given === 'Ibu') return given;
+  const k = normName(name);
+  if (SAPAAN[k]) return SAPAAN[k];
+  const hit = Object.keys(SAPAAN).find(x => x.startsWith(k) || k.startsWith(x));
+  return hit ? SAPAAN[hit] : 'Bapak/Ibu';
+}
 
 const enc = new TextEncoder();
 async function sha256(s) {
@@ -60,7 +70,7 @@ async function seedLegacy(env) {
 function publicDoc(d) {
   return {
     id: d.id, title: d.title, subtitle: d.subtitle, ver: d.ver, updated: d.updated, created: d.created,
-    signers: d.signers.map(({ key, name, role, page, x, y, w, h }) => ({ key, name, role, page, x, y, w, h })),
+    signers: d.signers.map(({ key, name, role, page, x, y, w, h, sapaan }) => ({ key, name, role, page, x, y, w, h, sapaan: sapaan || sapaanOf(name) })),
   };
 }
 async function getSigs(env, d) {
@@ -96,7 +106,7 @@ function normSigners(list, prev = []) {
     used.add(key);
     const old = prev.find(p => p.key === (s.key || key));
     return {
-      key, name: clean(s.name, 120), role: clean(s.role, 160),
+      key, name: clean(s.name, 120), role: clean(s.role, 160), sapaan: sapaanOf(s.name, s.sapaan),
       page: Math.max(1, parseInt(s.page) || 1), x: num(s.x), y: num(s.y), w: num(s.w) || 0.25, h: num(s.h) || 0.06,
       token: old?.token, tokenHash: old?.tokenHash,
     };
