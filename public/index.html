@@ -142,8 +142,9 @@ const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
 const STATUS = { baru: ['Baru', 'blue'], diproses: ['Diproses', 'no'], selesai: ['Selesai ✓', 'ok'], dibatalkan: ['Dibatalkan', ''] };
 
 const qs = new URLSearchParams(location.search);
-let DOC_ID = qs.get('d'), ME_KEY = qs.get('n'), TOK = qs.get('k'), ADMIN = qs.get('admin');
-if (!DOC_ID && ME_KEY && TOK) DOC_ID = LEGACY_ID; // link lama
+let DOC_ID = qs.get('d'), ME_KEY = qs.get('n'), TOK = qs.get('k'), ADMIN = qs.get('admin'), VIEW = qs.get('v');
+const authQS = () => 'k=' + encodeURIComponent(ADMIN || TOK || '') + (VIEW ? '&v=' + encodeURIComponent(VIEW) : '');
+const pdfUrl = () => '/api/docs/' + encodeURIComponent(DOC_ID) + '/pdf?' + authQS() + '&ver=' + (S.doc ? S.doc.ver : 1);
 const $ = id => document.getElementById(id);
 const app = $('app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -224,7 +225,7 @@ const me = () => S.doc && ME_KEY && TOK ? S.doc.signers.find(s => s.key === ME_K
 const sigOk = s => S.sigs[s.key] && S.sigs[s.key].ver === S.doc.ver;
 
 async function loadDoc() {
-  const j = await api('docs/' + encodeURIComponent(DOC_ID));
+  const j = await api('docs/' + encodeURIComponent(DOC_ID) + '?' + authQS());
   S.doc = j.doc; S.sigs = j.sigs || {}; S.kor = j.koreksi || [];
 }
 
@@ -244,7 +245,7 @@ async function showDoc() {
     <div class="card"><h2>Isi Notula</h2><p class="small" style="margin:0 0 10px">Tanda tangan muncul otomatis di kolomnya. Penanda 📍 adalah koreksi dari peserta, ketuk untuk melihat.</p><div class="pages" id="pages"></div></div>`;
   $('dl').onclick = downloadPdf;
   renderStatic();
-  await renderPdf($('pages'), '/api/docs/' + encodeURIComponent(DOC_ID) + '/pdf?v=' + S.doc.ver);
+  await renderPdf($('pages'), pdfUrl());
   renderOverlays();
   if (ADMIN) loadAdmin();
   if (me()) greet(me());
@@ -255,7 +256,7 @@ async function refresh() {
   if (document.hidden || $('modal').classList.contains('on') || document.body.classList.contains('koreksi')) return;
   const oldVer = S.doc.ver;
   try { await loadDoc(); } catch (e) { return; }
-  if (S.doc.ver !== oldVer) { await renderPdf($('pages'), '/api/docs/' + encodeURIComponent(DOC_ID) + '/pdf?v=' + S.doc.ver); toast('📄 Notula diperbarui ke versi terbaru'); }
+  if (S.doc.ver !== oldVer) { await renderPdf($('pages'), pdfUrl()); toast('📄 Notula diperbarui ke versi terbaru'); }
   renderStatic(); renderOverlays();
 }
 
@@ -559,7 +560,7 @@ async function downloadPdf() {
   const b = $('dl'); const t = b.textContent; b.disabled = true; b.textContent = 'Menyiapkan PDF...';
   try {
     const { PDFDocument } = PDFLib;
-    const pdf = await PDFDocument.load(await (await fetch('/api/docs/' + DOC_ID + '/pdf', { cache: 'no-store' })).arrayBuffer());
+    const pdf = await PDFDocument.load(await (await fetch(pdfUrl(), { cache: 'no-store' })).arrayBuffer());
     const pages = pdf.getPages(); let n = 0;
     for (const s of S.doc.signers.filter(sigOk)) {
       const pg = pages[s.page - 1]; if (!pg) continue; const { width: W, height: H } = pg.getSize();
@@ -579,7 +580,8 @@ async function loadAdmin() {
   try { S.admin = (await api('docs/' + DOC_ID + '/admin?k=' + encodeURIComponent(ADMIN))).doc; } catch (e) { $('adminCard').innerHTML = '<div class="card"><p>Akses admin ditolak: ' + esc(e.message) + '</p></div>'; return; }
   renderAdmin();
 }
-const linkFor = s => location.origin + '/?d=' + encodeURIComponent(DOC_ID) + '&n=' + encodeURIComponent(s.key) + '&k=' + encodeURIComponent(s.token);
+const linkFor = s => s.short ? location.origin + '/' + s.short : location.origin + '/?d=' + encodeURIComponent(DOC_ID) + '&n=' + encodeURIComponent(s.key) + '&k=' + encodeURIComponent(s.token);
+const viewLink = () => location.origin + '/?d=' + encodeURIComponent(DOC_ID) + '&v=' + encodeURIComponent(S.admin.view || '');
 function renderAdmin() {
   const a = S.admin;
   $('adminCard').innerHTML = `<div class="card"><h2>🛠️ Panel Admin</h2>
@@ -588,7 +590,8 @@ function renderAdmin() {
       ${s.token ? `<div class="linkbox"><input type="text" readonly value="${esc(linkFor(s))}"></div>` : '<div class="small">Link lama sudah dibagikan sebelumnya (tetap berlaku). Tekan Link baru jika ingin membuat ulang.</div>'}</div>
       <div class="btns" style="flex-direction:column;flex:none">${s.token ? `<button class="btn sm" data-copy="${esc(s.key)}">Salin</button><a class="btn sm sec" style="text-decoration:none;text-align:center" target="_blank" href="https://wa.me/?text=${encodeURIComponent(waText(s))}">WA</a>` : ''}
       <button class="btn sm sec" data-regen="${esc(s.key)}">Link baru</button></div></div>`).join('')}
-      <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button></div></div>
+      <div class="btns" style="margin-top:10px"><button class="btn sec" id="copyAll">📋 Salin semua link untuk WA</button></div>
+      <div class="row"><div class="grow"><b>👁️ Link lihat saja</b><span class="small">Untuk orang yang hanya perlu membaca notula ini, tanpa tanda tangan.</span><div class="linkbox"><input type="text" readonly value="${esc(viewLink())}"></div></div><button class="btn sm" id="copyView">Salin</button></div></div>
     <div data-p="rev" class="hidden"><p>Setelah koreksi ditindaklanjuti, unggah PDF notula versi revisi. Tanda tangan sebelumnya otomatis ditandai <b>perlu tanda tangan ulang</b>.</p>
       <input type="file" id="revFile" accept="application/pdf"><label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:10px 0"><input type="checkbox" id="revDone" checked> Tandai semua koreksi terbuka sebagai selesai</label>
       <div class="btns"><button class="btn" id="revUp">⬆️ Unggah revisi</button></div></div>
@@ -601,6 +604,7 @@ function renderAdmin() {
     if (!confirm('Buat link baru? Link lama untuk nama ini tidak berlaku lagi.')) return;
     try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, regenerate: b.dataset.regen }) }); toast('🔗 Link baru dibuat'); loadAdmin(); } catch (e) { toast('⚠️ ' + e.message); }
   });
+  $('copyView').onclick = () => copy(viewLink());
   $('copyAll').onclick = () => copy(a.signers.filter(s => s.token).map(s => `${s.name}:\n${linkFor(s)}`).join('\n\n'));
   $('revUp').onclick = async () => {
     const f = $('revFile').files[0]; if (!f) { toast('Pilih berkas PDF revisi dulu'); return; }
@@ -608,7 +612,7 @@ function renderAdmin() {
     try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, pdf: await fileB64(f), resolveAll: $('revDone').checked }) }); toast('✅ Revisi diunggah'); location.reload(); }
     catch (e) { toast('⚠️ ' + e.message); $('revUp').disabled = false; $('revUp').textContent = '⬆️ Unggah revisi'; }
   };
-  $('posEdit').onclick = () => openPlacer(S.admin.signers, '/api/docs/' + DOC_ID + '/pdf?v=' + S.doc.ver, async list => {
+  $('posEdit').onclick = () => openPlacer(S.admin.signers, pdfUrl(), async list => {
     await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, signers: list }) }); toast('✅ Posisi disimpan'); location.reload();
   });
   $('delDoc').onclick = async () => {
@@ -680,7 +684,7 @@ async function showAdminHome() {
   let docs;
   try { docs = await api('docs?k=' + encodeURIComponent(ADMIN)); } catch (e) { app.innerHTML = '<div class="card"><p>Akses admin ditolak: ' + esc(e.message) + '</p></div>'; return; }
   app.innerHTML = `<div class="card"><div class="btns"><button class="btn" id="newDoc">➕ Buat notula baru</button></div></div>
-    <div class="card"><h2>Daftar Notula (${docs.length})</h2>${docs.length ? docs.map(d => `<div class="row"><div class="grow"><b>${esc(d.title)}</b><span class="small">${esc(d.subtitle || '')}</span>
+    <div class="card"><h2>Daftar Notula (${docs.length})</h2>${docs.length ? docs.map(d => `<div class="row"><div class="grow"><b>${d.no ? '#' + d.no + ' · ' : ''}${esc(d.title)}</b><span class="small">${esc(d.subtitle || '')}</span>
       <div class="progress" style="margin:6px 0 0"><i style="width:${d.signers.length ? d.signed / d.signers.length * 100 : 0}%"></i></div>
       <span class="small">✍️ ${d.signed}/${d.signers.length} ttd${d.koreksiBaru ? ' · ✏️ ' + d.koreksiBaru + ' koreksi terbuka' : ''}${d.ver > 1 ? ' · revisi ke-' + (d.ver - 1) : ''}</span></div>
       <a class="btn sm" style="text-decoration:none" href="/?d=${encodeURIComponent(d.id)}&admin=${encodeURIComponent(ADMIN)}">Kelola</a></div>`).join('') : '<div class="empty">Belum ada notula.</div>'}</div>`;
@@ -710,17 +714,8 @@ function newDocWizard() {
 // ================= MULAI =================
 if (ADMIN && !DOC_ID) showAdminHome();
 else if (DOC_ID) showDoc();
-else showHome();
-async function showHome() {
-  $('hTitle').textContent = 'Notula Seksi Harta Peninggalan Wilayah II'; $('hSub').textContent = 'Balai Harta Peninggalan Medan';
-  document.title = 'Notula Wilayah II · BHP Medan';
-  let docs = [];
-  try { docs = await api('list'); } catch (e) { app.innerHTML = '<div class="card"><p>Daftar notula belum bisa dimuat: ' + esc(e.message) + '</p></div>'; return; }
-  app.innerHTML = `<div class="card"><p style="margin:0">✍️ Untuk menandatangani, gunakan link pribadi yang dikirimkan kepada Bapak/Ibu. Daftar di bawah hanya untuk melihat isi dan status notula.</p></div>
-    <div class="card"><h2>Daftar Notula (${docs.length})</h2>${docs.length ? docs.map(d => `<div class="row"><div class="grow"><b>${esc(d.title)}</b><span class="small">${esc(d.subtitle || '')}</span>
-      <div class="progress" style="margin:6px 0 0"><i style="width:${d.total ? d.signed / d.total * 100 : 0}%"></i></div><span class="small">✍️ ${d.signed}/${d.total} tanda tangan${d.ver > 1 ? ' · revisi ke-' + (d.ver - 1) : ''}</span></div>
-      <a class="btn sm" style="text-decoration:none" href="/?d=${encodeURIComponent(d.id)}">Buka</a></div>`).join('') : '<div class="empty">Belum ada notula.</div>'}</div>`;
-}
+else { $('hTitle').textContent = 'Notula Seksi Harta Peninggalan Wilayah II'; $('hSub').textContent = 'Balai Harta Peninggalan Medan';
+  app.innerHTML = '<div class="card"><div class="big-emoji">✍️</div><p style="text-align:center">Silakan buka link notula yang dikirimkan kepada Bapak/Ibu.<br><span class="small">Setiap notula hanya dapat dibuka melalui link pribadi masing-masing.</span></p></div>'; }
 </script>
 </body>
 </html>

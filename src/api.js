@@ -1,4 +1,5 @@
-// API Tanda Tangan & Koreksi Notula BHP Medan (Cloudflare Pages Functions, KV binding: TTD)
+// API Tanda Tangan & Koreksi Notula BHP Medan (Cloudflare Worker, KV binding: TTD)
+import { SEEDS } from './seeds.js';
 //
 // Kunci KV:
 //   doc:<id>            metadata notula (judul, penanda tangan, posisi kotak ttd, versi)
@@ -6,9 +7,10 @@
 //   sig:<id>:<key>      tanda tangan {img, at, ver}
 //   kor:<id>            daftar koreksi (satu dokumen JSON per notula)
 //   docs                indeks id notula
+//   seq                 nomor notula terakhir
+//   short:<kode>        link pendek per penanda tangan, contoh ttdshela2 -> {id, key}
 
 const ADMIN_HASH = '5085f6ac55a05a54ce1c8c743c5e74d72a63b28dcc8efc8eb0d5301d59dada41';
-const LEGACY_ID = 'notula-20261113';
 // Sapaan pegawai BHP Medan (dari digit ke-15 NIP pada sheet Daftar Pegawai: 1 = Bapak, 2 = Ibu)
 const SAPAAN = {"syafriadilubis": "Bapak", "nelsydepari": "Ibu", "lusianatarihoran": "Ibu", "elsinthadamayanti": "Ibu", "budiyanto": "Bapak", "syuhada": "Bapak", "dartimnovmtharahap": "Bapak", "marianibrmarbun": "Ibu", "tumiarsimanjorang": "Ibu", "nanangsuryapurnama": "Bapak", "titinwahyunasaridongoran": "Ibu", "jokoprabowo": "Bapak", "dianstevanytongli": "Ibu", "mtaufikrahman": "Bapak", "shelanatasha": "Ibu", "hutrizebua": "Bapak", "nurfairuzdibanasution": "Ibu", "diajengkartikasari": "Ibu", "rifalsaptahadi": "Bapak", "andreyosuasurbakti": "Bapak", "teukumeurahalbar": "Bapak", "hartoalfredosiregar": "Bapak", "annisadwimarina": "Ibu", "elsyindriani": "Ibu", "yusrilihzamahendra": "Bapak", "nindia": "Ibu", "naekparlindungansibuea": "Bapak", "bettyirawatisinaga": "Ibu", "adelinairmadewitasiagian": "Ibu", "agniramaniyamaharani": "Ibu", "tridolasiregar": "Ibu", "febrinasiringoringo": "Ibu", "indriananurkamsiah": "Ibu", "royalexander": "Bapak"};
 const normName = n => String(n || '').replace(/,.*$/, '').replace(/\b(Dr|Drs|Ir|H|Hj)\.?\s+/gi, '').toLowerCase().replace(/[^a-z]/g, '');
@@ -42,35 +44,69 @@ async function getIndex(env) { return (await env.TTD.get('docs', 'json')) || [];
 async function setIndex(env, ids) { await env.TTD.put('docs', JSON.stringify([...new Set(ids)])); }
 async function getDoc(env, id) {
   let d = await env.TTD.get('doc:' + id, 'json');
-  if (!d && id === LEGACY_ID) d = await seedLegacy(env);
+  if (!d && SEEDS.some(x => x.id === id)) d = await seedDoc(env, SEEDS.find(x => x.id === id));
   return d;
 }
 async function putDoc(env, d) { await env.TTD.put('doc:' + d.id, JSON.stringify(d)); }
+async function ensureSeeds(env) { for (const sd of SEEDS) await getDoc(env, sd.id); }
 
-// Notula pertama (13 Nov 2026) dibuat otomatis dari berkas statis, termasuk ttd yang sudah tersimpan di format lama.
-let seeding = null;
-async function seedLegacy(env) {
-  if (!env.ASSETS) return null;
-  if (seeding) return seeding;
-  seeding = (async () => {
-    const meta = await (await env.ASSETS.fetch('https://x/legacy.json')).json();
-    const pdf = await (await env.ASSETS.fetch('https://x/notula.pdf')).arrayBuffer();
-    await env.TTD.put('pdf:' + meta.id, pdf);
-    for (const s of meta.signers) {
-      const old = await env.TTD.get('ttd:' + s.key, 'json');
-      if (old) await env.TTD.put('sig:' + meta.id + ':' + s.key, JSON.stringify({ ...old, ver: 1 }));
+// Notula awal (dibundel di Worker) dimasukkan ke KV saat pertama kali dibutuhkan
+const seeding = {};
+function seedDoc(env, sd) {
+  if (seeding[sd.id]) return seeding[sd.id];
+  return (seeding[sd.id] = (async () => {
+    const d = { id: sd.id, no: sd.no, title: sd.title, subtitle: sd.subtitle, ver: 1, created: sd.created, updated: new Date().toISOString(),
+      signers: await ensureTokens(normSigners(sd.signers)) };
+    await env.TTD.put('pdf:' + d.id, sd.pdf);
+    await finalizeDoc(env, d);
+    const seq = parseInt(await env.TTD.get('seq')) || 0;
+    if (sd.no > seq) await env.TTD.put('seq', String(sd.no));
+    return d;
+  })());
+}
+// kunci lihat-saja, link pendek, simpan & indeks
+async function finalizeDoc(env, d) {
+  if (!d.view) d.view = rand(8);
+  await assignShorts(env, d);
+  await putDoc(env, d);
+  await setIndex(env, [...(await getIndex(env)), d.id]);
+}
+const firstName = n => String(n || '').replace(/,.*$/, '').replace(/^(M\.|Muhammad|Moh\.|Hj?\.|Dr\.|Drs\.|Ir\.)\s+/i, '').trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '') || 'peserta';
+async function assignShorts(env, d) {
+  for (const s of d.signers) {
+    if (s.short) continue;
+    const parts = String(s.name).replace(/,.*$/, '').toLowerCase().replace(/[^a-z ]/g, '').split(/\s+/).filter(Boolean);
+    const cands = [firstName(s.name), firstName(s.name) + (parts[1] || '').slice(0, 1), firstName(s.name) + (parts[1] || '')];
+    let code = null;
+    for (const c of cands) {
+      const k = 'ttd' + c + d.no;
+      const ex = await env.TTD.get('short:' + k, 'json');
+      if (!ex || (ex.id === d.id && ex.key === s.key)) { code = k; break; }
     }
-    await putDoc(env, meta);
-    await setIndex(env, [...(await getIndex(env)), meta.id]);
-    return meta;
-  })();
-  return seeding;
+    if (!code) code = 'ttd' + firstName(s.name) + d.no + '-' + rand(2).toLowerCase();
+    s.short = code;
+    await env.TTD.put('short:' + code, JSON.stringify({ id: d.id, key: s.key }));
+  }
+}
+export async function resolveShort(env, code) {
+  const m = await env.TTD.get('short:' + String(code).toLowerCase(), 'json');
+  if (!m) return null;
+  const d = await getDoc(env, m.id); const s = d && d.signers.find(x => x.key === m.key);
+  if (!s || !s.token) return null;
+  return '/?d=' + encodeURIComponent(d.id) + '&n=' + encodeURIComponent(s.key) + '&k=' + encodeURIComponent(s.token);
+}
+async function canView(d, k, v) {
+  if (v && d.view && v === d.view) return true;
+  if (!k) return false;
+  if (await isAdmin(k)) return true;
+  const h = await sha256(k);
+  return d.signers.some(s => s.tokenHash === h);
 }
 
 function publicDoc(d) {
   return {
-    id: d.id, title: d.title, subtitle: d.subtitle, ver: d.ver, updated: d.updated, created: d.created,
-    signers: d.signers.map(({ key, name, role, page, x, y, w, h, sapaan }) => ({ key, name, role, page, x, y, w, h, sapaan: sapaan || sapaanOf(name) })),
+    id: d.id, no: d.no, title: d.title, subtitle: d.subtitle, ver: d.ver, updated: d.updated, created: d.created,
+    signers: d.signers.map(({ key, name, role, page, x, y, w, h, sapaan, short }) => ({ key, name, role, page, x, y, w, h, sapaan: sapaan || sapaanOf(name), short })),
   };
 }
 async function getSigs(env, d) {
@@ -106,7 +142,7 @@ function normSigners(list, prev = []) {
     used.add(key);
     const old = prev.find(p => p.key === (s.key || key));
     return {
-      key, name: clean(s.name, 120), role: clean(s.role, 160), sapaan: sapaanOf(s.name, s.sapaan),
+      key, name: clean(s.name, 120), role: clean(s.role, 160), sapaan: sapaanOf(s.name, s.sapaan), short: old?.short,
       page: Math.max(1, parseInt(s.page) || 1), x: num(s.x), y: num(s.y), w: num(s.w) || 0.25, h: num(s.h) || 0.06,
       token: old?.token, tokenHash: old?.tokenHash,
     };
@@ -131,24 +167,11 @@ export async function onRequest(ctx) {
 
   try {
     // ---------- daftar & buat notula (admin) ----------
-    // daftar publik (tanpa link/token) untuk halaman depan
-    if (parts[0] === 'list' && m === 'GET') {
-      const ids = await getIndex(env);
-      if (!ids.includes(LEGACY_ID)) { await getDoc(env, LEGACY_ID); ids.unshift(LEGACY_ID); }
-      const docs = [];
-      for (const id of ids) {
-        const d = await getDoc(env, id); if (!d) continue;
-        const sigs = await getSigs(env, d);
-        docs.push({ id: d.id, title: d.title, subtitle: d.subtitle, created: d.created, ver: d.ver,
-          total: d.signers.length, signed: Object.values(sigs).filter(x => x.ver === d.ver).length });
-      }
-      return json(docs.sort((a, b) => String(b.created).localeCompare(String(a.created))));
-    }
     if (parts[0] === 'docs' && parts.length === 1) {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);
       if (m === 'GET') {
+        await ensureSeeds(env);
         const ids = await getIndex(env);
-        if (!ids.includes(LEGACY_ID)) { await getDoc(env, LEGACY_ID); ids.unshift(LEGACY_ID); }
         const docs = [];
         for (const id of ids) {
           const d = await getDoc(env, id); if (!d) continue;
@@ -165,11 +188,12 @@ export async function onRequest(ctx) {
         let id = slug(body.id || body.title) || 'notula';
         if (await env.TTD.get('doc:' + id)) id += '-' + rand(3).toLowerCase();
         const now = new Date().toISOString();
-        const d = { id, title: clean(body.title, 200), subtitle: clean(body.subtitle, 200), ver: 1, created: now, updated: now,
+        const no = (parseInt(await env.TTD.get('seq')) || SEEDS.length) + 1;
+        await env.TTD.put('seq', String(no));
+        const d = { id, no, title: clean(body.title, 200), subtitle: clean(body.subtitle, 200), ver: 1, created: now, updated: now,
           signers: await ensureTokens(normSigners(body.signers)) };
         await env.TTD.put('pdf:' + id, buf);
-        await putDoc(env, d);
-        await setIndex(env, [...(await getIndex(env)), id]);
+        await finalizeDoc(env, d);
         return json({ ok: true, id });
       }
     }
@@ -181,6 +205,9 @@ export async function onRequest(ctx) {
     const sub = parts[2] || '';
 
     // ---------- baca notula ----------
+    const v = url.searchParams.get('v') || '';
+    if ((sub === '' || sub === 'pdf') && m === 'GET' && !(await canView(d, k, v)))
+      return err('Notula ini hanya dapat dibuka melalui link yang dikirimkan kepada Bapak/Ibu', 403);
     if (!sub && m === 'GET') {
       return json({ doc: publicDoc(d), sigs: await getSigs(env, d), koreksi: await getKor(env, id) });
     }
@@ -193,11 +220,11 @@ export async function onRequest(ctx) {
     // ---------- admin: detail (dengan link), ubah, revisi PDF, hapus ----------
     if (sub === 'admin') {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);
-      if (m === 'GET') return json({ doc: { ...publicDoc(d), signers: d.signers.map(({ tokenHash, ...s }) => ({ ...s, hasLink: !!tokenHash })) } });
+      if (m === 'GET') return json({ doc: { ...publicDoc(d), view: d.view, signers: d.signers.map(({ tokenHash, ...s }) => ({ ...s, hasLink: !!tokenHash })) } });
       if (m === 'PUT') {
         if (body.title) d.title = clean(body.title, 200);
         if ('subtitle' in body) d.subtitle = clean(body.subtitle, 200);
-        if (body.signers) d.signers = await ensureTokens(normSigners(body.signers, d.signers));
+        if (body.signers) { d.signers = await ensureTokens(normSigners(body.signers, d.signers)); await assignShorts(env, d); }
         if (body.regenerate) {
           const s = d.signers.find(x => x.key === body.regenerate);
           if (s) { s.token = rand(); s.tokenHash = await sha256(s.token); }
@@ -220,6 +247,7 @@ export async function onRequest(ctx) {
       if (m === 'DELETE') {
         await env.TTD.delete('doc:' + id); await env.TTD.delete('pdf:' + id); await env.TTD.delete('kor:' + id);
         for (const s of d.signers) await env.TTD.delete('sig:' + id + ':' + s.key);
+        for (const s of d.signers) if (s.short) await env.TTD.delete('short:' + s.short);
         await setIndex(env, (await getIndex(env)).filter(x => x !== id));
         return json({ ok: true });
       }
