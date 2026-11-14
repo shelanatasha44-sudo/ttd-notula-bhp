@@ -90,7 +90,8 @@ async function assignShorts(env, d) {
   }
 }
 export async function resolveShort(env, code) {
-  const m = await env.TTD.get('short:' + String(code).toLowerCase(), 'json');
+  let m = await env.TTD.get('short:' + String(code).toLowerCase(), 'json');
+  if (!m) { await ensureSeeds(env); m = await env.TTD.get('short:' + String(code).toLowerCase(), 'json'); }
   if (!m) return null;
   const d = await getDoc(env, m.id); const s = d && d.signers.find(x => x.key === m.key);
   if (!s || !s.token) return null;
