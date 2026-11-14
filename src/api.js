@@ -15,6 +15,12 @@ const ADMIN_HASH = '5085f6ac55a05a54ce1c8c743c5e74d72a63b28dcc8efc8eb0d5301d59da
 const SAPAAN = {"syafriadilubis": "Bapak", "nelsydepari": "Ibu", "lusianatarihoran": "Ibu", "elsinthadamayanti": "Ibu", "budiyanto": "Bapak", "syuhada": "Bapak", "dartimnovmtharahap": "Bapak", "marianibrmarbun": "Ibu", "tumiarsimanjorang": "Ibu", "nanangsuryapurnama": "Bapak", "titinwahyunasaridongoran": "Ibu", "jokoprabowo": "Bapak", "dianstevanytongli": "Ibu", "mtaufikrahman": "Bapak", "shelanatasha": "Ibu", "hutrizebua": "Bapak", "nurfairuzdibanasution": "Ibu", "diajengkartikasari": "Ibu", "rifalsaptahadi": "Bapak", "andreyosuasurbakti": "Bapak", "teukumeurahalbar": "Bapak", "hartoalfredosiregar": "Bapak", "annisadwimarina": "Ibu", "elsyindriani": "Ibu", "yusrilihzamahendra": "Bapak", "nindia": "Ibu", "naekparlindungansibuea": "Bapak", "bettyirawatisinaga": "Ibu", "adelinairmadewitasiagian": "Ibu", "agniramaniyamaharani": "Ibu", "tridolasiregar": "Ibu", "febrinasiringoringo": "Ibu", "indriananurkamsiah": "Ibu", "royalexander": "Bapak"};
 const normName = n => String(n || '').replace(/,.*$/, '').replace(/\b(Dr|Drs|Ir|H|Hj)\.?\s+/gi, '').toLowerCase().replace(/[^a-z]/g, '');
 const PEGAWAI = [{"name": "Syafriadi Lubis", "role": "Kepala Balai Harta Peninggalan Medan", "sapaan": "Bapak"}, {"name": "Nelsy Depari", "role": "Kepala Subbagian Umum", "sapaan": "Ibu"}, {"name": "Lusiana Tarihoran", "role": "Kepala Seksi Harta Peninggalan Wilayah I", "sapaan": "Ibu"}, {"name": "Elsintha Damayanti", "role": "Kepala Seksi Harta Peninggalan Wilayah II", "sapaan": "Ibu"}, {"name": "Budiyanto", "role": "Kepala Seksi Harta Peninggalan Wilayah III", "sapaan": "Bapak"}, {"name": "Syuhada", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Bapak"}, {"name": "Dartimnov M.T Harahap", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Bapak"}, {"name": "Mariani Br Marbun", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Ibu"}, {"name": "Tumiar Simanjorang", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Ibu"}, {"name": "Nanang Surya Purnama", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Bapak"}, {"name": "Titin Wahyunasari Dongoran", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Ibu"}, {"name": "Joko Prabowo", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Bapak"}, {"name": "Dian Stevany Tongli", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Ibu"}, {"name": "M. Taufik Rahman", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Shela Natasha", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Hutri Zebua", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Nur Fairuz Diba Nasution", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Diajeng Kartika Sari", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Rifal Sapta Hadi", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Andre Yosua Surbakti", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Teuku Meurah Albar", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Harto Alfredo Siregar", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Annisa Dwi Marina", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Elsy Indriani", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Yusril Ihza Mahendra", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Nindia", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Naek Parlindungan Sibuea", "role": "Pengolah Data dan Informasi", "sapaan": "Bapak"}, {"name": "Betty Irawati Sinaga", "role": "Pengelola Layanan Operasional", "sapaan": "Ibu"}, {"name": "Adelina Irmadewita Siagian", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Agni Ramaniya Maharani", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Tridola Siregar", "role": "Penata Kelola Pemerintahan", "sapaan": "Ibu"}, {"name": "Febrina Siringoringo", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Indriana Nurkamsiah", "role": "Pengadministrasi Perkantoran", "sapaan": "Ibu"}, {"name": "Roy Alexander", "role": "Pengelola Layanan Pengadaan", "sapaan": "Bapak"}];
+// Pejabat (Kepala Kantor, Kepala Seksi/Subbagian, Kurator Ahli Madya): koreksinya otomatis disetujui
+function isPejabat(s) {
+  const k = normName(s.name);
+  const p = PEGAWAI.find(x => normName(x.name) === k) || PEGAWAI.find(x => { const n = normName(x.name); return n.startsWith(k) || k.startsWith(n); });
+  return /^kepala|ahli madya/i.test((p && p.role) || s.role || '');
+}
 function sapaanOf(name, given) {
   if (given === 'Bapak' || given === 'Ibu') return given;
   const k = normName(name);
@@ -58,6 +64,7 @@ async function getDoc(env, id) {
   const sd = SEEDS.find(x => x.id === id);
   if (!d && sd) d = await seedDoc(env, sd);
   else if (d && sd && (sd.rev || 1) > (d.seedRev || 1)) d = await upgradeSeed(env, d, sd);
+  else if (d && sd && d.seedRev > 1 && !d.fixSig) { d.fixSig = true; await putDoc(env, d); await carrySigs(env, d); }
   return d;
 }
 // Revisi notula awal dari kode: PDF ditimpa, posisi kolom ttd diperbarui, link & token tetap sama
@@ -70,8 +77,9 @@ function upgradeSeed(env, d, sd) {
       const n = sd.signers.find(x => x.key === s.key);
       if (n) Object.assign(s, { page: n.page, x: n.x, y: n.y, w: n.w, h: n.h, role: n.role || s.role });
     }
-    d.ver = (d.ver || 1) + 1; d.seedRev = sd.rev; d.updated = new Date().toISOString();
+    d.ver = (d.ver || 1) + 1; d.seedRev = sd.rev; d.updated = new Date().toISOString(); d.fixSig = true;
     await putDoc(env, d);
+    await carrySigs(env, d);
     return d;
   })());
 }
@@ -123,6 +131,14 @@ export async function resolveShort(env, code) {
   const d = await getDoc(env, m.id); const s = d && d.signers.find(x => x.key === m.key);
   if (!s || !s.token) return null;
   return '/?d=' + encodeURIComponent(d.id) + '&n=' + encodeURIComponent(s.key) + '&k=' + encodeURIComponent(s.token);
+}
+// Bawa tanda tangan ke versi baru, kecuali nama yang harus tanda tangan ulang
+async function carrySigs(env, d, resign = new Set()) {
+  for (const s of d.signers) {
+    if (resign.has(s.key)) continue;
+    const sg = await env.TTD.get('sig:' + d.id + ':' + s.key, 'json');
+    if (sg && sg.ver === d.ver - 1) { sg.ver = d.ver; await env.TTD.put('sig:' + d.id + ':' + s.key, JSON.stringify(sg)); }
+  }
 }
 async function canView(d, k, v) {
   if (v && d.view && v === d.view) return true;
@@ -276,11 +292,12 @@ export async function onRequest(ctx) {
           if (buf.byteLength > 20e6) return err('PDF terlalu besar (maks 20 MB)');
           await env.TTD.put('pdf:' + id, buf);
           d.ver = (d.ver || 1) + 1;
-          const kor = await getKor(env, id), now = new Date().toISOString();
+          const kor = await getKor(env, id), now = new Date().toISOString(), resign = new Set();
           kor.forEach(c => {
-            if (c.status === 'disetujui' || (body.resolveAll && ['baru', 'diproses'].includes(c.status))) { c.status = 'selesai'; c.doneAt = now; c.doneVer = d.ver; }
+            if (c.status === 'disetujui' || (body.resolveAll && ['baru', 'diproses'].includes(c.status))) { c.status = 'selesai'; c.doneAt = now; c.doneVer = d.ver; resign.add(c.by); }
           });
           await putKor(env, id, kor);
+          await carrySigs(env, d, resign);
         }
         d.updated = new Date().toISOString();
         await putDoc(env, d);
@@ -324,20 +341,20 @@ export async function onRequest(ctx) {
         if (!s) return err('Link tidak valid untuk mengirim koreksi', 403);
         const items = (body.items || []).slice(0, 50);
         if (!items.length) return err('Belum ada koreksi');
-        const now = new Date().toISOString();
+        const now = new Date().toISOString(), auto = isPejabat(s);
         for (const it of items) {
-          kor.push({ id: rand(6), by: s.key, byName: s.name, ver: d.ver, at: now, status: 'baru',
+          kor.push({ id: rand(6), by: s.key, byName: s.name, ver: d.ver, at: now, status: auto ? 'disetujui' : 'baru', auto,
             page: Math.max(1, parseInt(it.page) || 1), x: num(it.x), y: num(it.y), w: num(it.w), h: num(it.h),
             cat: clean(it.cat, 40), from: clean(it.from, 600), to: clean(it.to, 1200), note: clean(it.note, 1200), agree: [] });
         }
         if (kor.length > 1000) return err('Koreksi terlalu banyak');
         await putKor(env, id, kor);
         const added = kor.slice(-items.length);
-        const nt = notify(env, `✏️ ${items.length} koreksi baru dari ${s.name} · ${d.title}`.slice(0, 200), {
+        const nt = notify(env, `✏️ ${items.length} koreksi ${auto ? 'disetujui otomatis (pejabat)' : 'baru'} dari ${s.name} · ${d.title}`.slice(0, 200), {
           Notula: d.title, Dari: s.name + (s.role ? ' (' + s.role + ')' : ''), Waktu: wib(now),
           Koreksi: added.map((c, i) => `${i + 1}. [Hal. ${c.page}] ${c.from ? c.from + ' → ' : ''}${c.to || ''}${c.note ? ' (' + c.note + ')' : ''}`).join('\n'),
-          Tindak_lanjut: origin + '/?d=' + encodeURIComponent(id) });
-        return json({ ok: true, count: items.length, notify: nt });
+          Status: auto ? 'Disetujui otomatis karena diajukan pejabat. Mohon unggah PDF revisi.' : 'Menunggu persetujuan admin', Tindak_lanjut: origin + '/?d=' + encodeURIComponent(id) });
+        return json({ ok: true, count: items.length, auto, notify: nt });
       }
       if (m === 'PATCH') {
         const c = kor.find(x => x.id === body.id);

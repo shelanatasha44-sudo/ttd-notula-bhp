@@ -337,7 +337,7 @@ function renderStatic() {
   $('bar').style.width = pct + '%'; $('ring').style.setProperty('--p', pct); $('ringTx').textContent = pct + '%';
   $('list').innerHTML = d.signers.map(s => {
     const sg = S.sigs[s.key], ok = sigOk(s), old = sg && !ok;
-    return `<div class="row">${avatar(s.name, ok)}<div class="grow"><b>${esc(s.name)}</b><span class="small">${ok ? 'Ditandatangani ' + fmt(sg.at) : old ? 'Perlu tanda tangan ulang (ada revisi)' : esc(s.role)}</span></div>
+    return `<div class="row">${avatar(s.name, ok)}<div class="grow"><b>${esc(s.name)}</b><span class="small">${ok ? 'Ditandatangani ' + fmt(sg.at) : old ? 'Perlu tanda tangan ulang (koreksinya sudah direvisi)' : esc(s.role)}</span></div>
       ${ok ? `<img class="sg" src="${sg.img}" alt="">` : ''}<span class="pill ${ok ? 'ok' : old ? 'bad' : 'no'}">${ok ? 'Sudah' : old ? 'Ulang' : 'Belum'}</span>
       ${ADMIN && sg ? `<button class="btn sm danger" data-reset="${esc(s.key)}">Hapus</button>` : ''}</div>`;
   }).join('');
@@ -401,7 +401,7 @@ function korItem(c, i, opts = {}) {
   const cat = catOf(c.cat), st = STATUS[c.status] || STATUS.baru, m = me();
   const agreed = m && (c.agree || []).includes(m.key);
   return `<div class="kitem" style="--c:${cat.c}"><div class="h"><span class="num">${opts.label || i + 1}</span><b class="small" style="color:${cat.c}">${cat.label}</b>
-    <span class="small">Hal. ${c.page}</span>${c.status ? `<span class="pill ${st[1]}">${st[0]}</span>` : ''}</div>
+    <span class="small">Hal. ${c.page}</span>${c.status ? `<span class="pill ${st[1]}">${c.auto && c.status === 'disetujui' ? 'Disetujui otomatis · menunggu revisi' : st[0]}</span>` : ''}</div>
     <div class="tx">${c.from ? `<del>${esc(c.from)}</del> → ` : ''}${c.to ? `<ins>${esc(c.to)}</ins>` : ''}${c.note ? `<div>${esc(c.note)}</div>` : ''}</div>
     ${c.byName ? `<div class="small" style="margin-top:4px">oleh ${esc(c.byName)} · ${fmt(c.at)}${(c.agree || []).length ? ' · 👍 ' + c.agree.length : ''}</div>` : ''}
     ${c.reply ? `<div class="reply">💬 Admin: ${esc(c.reply)}</div>` : ''}
@@ -574,7 +574,7 @@ async function sendKoreksi() {
     sendNotify(r.notify);
     drafts = []; saveDrafts(); exitKoreksi(); confetti(); await afterChange();
     openSheet(`<div class="big-emoji">🎉</div><h3 style="text-align:center">Terima kasih! ${r.count} koreksi terkirim</h3>
-      <p class="lead" style="text-align:center">Admin akan menindaklanjuti dan Bapak/Ibu bisa memantau statusnya di halaman ini. Mau langsung menandatangani, atau menunggu notula direvisi?</p>
+      <p class="lead" style="text-align:center">${r.auto ? 'Koreksi Bapak/Ibu langsung disetujui dan notula akan segera direvisi.' : 'Admin akan menindaklanjuti dan Bapak/Ibu bisa memantau statusnya di halaman ini.'} Mau langsung menandatangani, atau menunggu notula direvisi?</p>
       <div class="choice"><button class="btn" id="aSign"><span style="font-size:22px">✍️</span><span>Tanda tangan sekarang</span></button>
       <button class="btn sec" id="aWait"><span style="font-size:22px">⏳</span><span>Nanti setelah direvisi</span></button></div>`, sh => {
       sh.querySelector('#aSign').onclick = () => openPad(); sh.querySelector('#aWait').onclick = () => { closeSheet(); toast('Siap, silakan buka link ini lagi setelah revisi 👍'); };
@@ -762,7 +762,7 @@ function renderApproved() {
 function openRevision(justApproved) {
   const n = S.kor.filter(c => c.status === 'disetujui').length;
   openSheet(`<div class="big-emoji">📄</div><h3 style="text-align:center">${justApproved ? 'Koreksi disetujui ✅' : 'Unggah PDF revisi'}</h3>
-    <p class="lead" style="text-align:center">${n ? `Unggah notula revisi yang sudah memuat <b>${n} koreksi disetujui</b>.` : 'Unggah notula versi terbaru.'} File lama langsung tertimpa, link notula dan link tanda tangan tetap sama. Tanda tangan sebelumnya perlu diulang pada versi baru.</p>
+    <p class="lead" style="text-align:center">${n ? `Unggah notula revisi yang sudah memuat <b>${n} koreksi disetujui</b>.` : 'Unggah notula versi terbaru.'} File lama langsung tertimpa, link notula dan link tanda tangan tetap sama. Tanda tangan yang sudah ada tetap berlaku, hanya pengaju koreksi yang disetujui yang perlu tanda tangan ulang.</p>
     <label class="btn" style="display:block;text-align:center;cursor:pointer">📎 Pilih PDF revisi<input type="file" id="rvF" accept="application/pdf" style="display:none"></label>
     <div class="small" id="rvMsg" style="margin-top:10px;text-align:center"></div>
     <div class="btns" style="margin-top:10px"><button class="btn sec" id="rvLater">${justApproved ? 'Nanti, setujui koreksi lain dulu' : 'Batal'}</button></div>`, sh => {
