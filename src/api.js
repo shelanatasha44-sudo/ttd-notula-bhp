@@ -72,7 +72,8 @@ async function getDoc(env, id) {
 const upgrading = {};
 function upgradeSeed(env, d, sd) {
   if (upgrading[d.id]) return upgrading[d.id];
-  if (sd.replace) return (upgrading[d.id] = replaceSeed(env, d, sd));
+  if (sd.replaceRev && (d.seedRev || 1) < sd.replaceRev) return (upgrading[d.id] = replaceSeed(env, d, sd));
+  if (sd.replaceRev) return (upgrading[d.id] = syncSigners(env, d, sd));
   return (upgrading[d.id] = (async () => {
     await env.TTD.put('pdf:' + d.id, sd.pdf);
     for (const s of d.signers) {
@@ -156,6 +157,18 @@ async function replaceSeed(env, d, sd) {
   await assignShorts(env, d);
   await env.TTD.put('kor:' + d.id, '[]');
   Object.assign(d, { title: sd.title, subtitle: sd.subtitle, created: sd.created, ver: (d.ver || 1) + 1, seedRev: sd.rev, fixSig: true, updated: new Date().toISOString() });
+  await putDoc(env, d);
+  return d;
+}
+// Penyesuaian daftar penanda tangan saja (PDF sama): nama yang dikeluarkan dihapus, ttd lain tetap
+async function syncSigners(env, d, sd) {
+  const keep = new Set(sd.signers.map(x => x.key));
+  for (const s of d.signers) if (!keep.has(s.key)) {
+    await env.TTD.delete('sig:' + d.id + ':' + s.key);
+    if (s.short) await env.TTD.delete('short:' + s.short);
+  }
+  d.signers = d.signers.filter(s => keep.has(s.key));
+  Object.assign(d, { seedRev: sd.rev, updated: new Date().toISOString() });
   await putDoc(env, d);
   return d;
 }

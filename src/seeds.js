@@ -142,20 +142,10 @@ export const SEEDS = [
     "y": 0.6557,
     "w": 0.215,
     "h": 0.0321
-   },
-   {
-    "key": "benyamin",
-    "name": "Benyamin",
-    "role": "Pihak yang berminat atas lahan bekas Hak Guna Usaha",
-    "page": 4,
-    "x": 0.4048,
-    "y": 0.683,
-    "w": 0.215,
-    "h": 0.0321
    }
   ],
-  "rev": 2,
-  "replace": true
+  "rev": 3,
+  "replaceRev": 2
  },
  {
   "id": "notula-rata-makmur-20261110",
