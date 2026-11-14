@@ -43,8 +43,6 @@ export async function onRequestPost({ request, env }) {
   }
   if (typeof img !== 'string' || !img.startsWith('data:image/png;base64,') || img.length > 400000)
     return json({ error: 'Gambar tanda tangan tidak valid' }, 400);
-  const prev = await env.TTD.get('ttd:' + key);
-  if (prev && !isAdmin) return json({ error: 'Nama ini sudah menandatangani' }, 409);
   const rec = { img, at: new Date().toISOString() };
   await env.TTD.put('ttd:' + key, JSON.stringify(rec));
   return json({ ok: true, at: rec.at });

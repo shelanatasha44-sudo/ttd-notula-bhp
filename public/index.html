@@ -73,7 +73,7 @@ canvas{width:100%;height:230px;border:1.5px dashed #9aa4b5;border-radius:10px;to
 <div id="pad" role="dialog" aria-modal="true">
   <div class="sheet">
     <h3 id="padTitle">Tanda tangan</h3>
-    <p>Coret tanda tangan dengan jari di kotak di bawah ini.</p>
+    <p>Coret tanda tangan dengan jari atau stylus di kotak di bawah ini. Tekan Ulangi bila ingin mengulang.</p>
     <canvas id="cv"></canvas>
     <div class="acts">
       <button class="btn sec" id="clr">Ulangi</button>
@@ -141,8 +141,9 @@ function render() {
     const c = document.createElement('div'); c.className = 'card me';
     const p = document.createElement('p');
     if (data[me.key]) {
-      p.textContent = 'Terima kasih, ' + me.name + '. Tanda tangan Bapak/Ibu sudah tersimpan pada ' + fmt(data[me.key].at) + '.';
-      c.appendChild(p);
+      p.textContent = 'Terima kasih, ' + me.name + '. Tanda tangan Bapak/Ibu sudah tersimpan di notula pada ' + fmt(data[me.key].at) + '. Jika ingin mengganti, tekan Ulangi tanda tangan.';
+      const bt = document.createElement('button'); bt.className = 'btn sec'; bt.textContent = 'Ulangi tanda tangan';
+      bt.onclick = openPad; c.append(p, bt);
     } else {
       p.textContent = 'Yth. ' + me.name + ' (' + me.role + '), silakan membaca notula di bawah, lalu tekan tombol berikut untuk menandatangani.';
       const bt = document.createElement('button'); bt.className = 'btn'; bt.textContent = 'Tanda tangani sekarang';
@@ -162,18 +163,65 @@ async function load() {
   render();
 }
 
-// pad tanda tangan
-const cv = $('cv'); const ctx = cv.getContext('2d'); let drawing = false, dirty = false, last = null;
+// pad tanda tangan: goresan pena tinta basah (tebal-tipis mengikuti kecepatan dan tekanan)
+const INK = '#14248a';
+const cv = $('cv'); const ctx = cv.getContext('2d');
+let drawing = false, dirty = false, pts = [], lastW = 2.2;
 function sizeCanvas() {
-  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const r = cv.getBoundingClientRect(), dpr = Math.max(2, window.devicePixelRatio || 1);
   cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr);
-  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineWidth = 2.4; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#0b1f6b';
+  ctx.setTransform(dpr,0,0,dpr,0,0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.strokeStyle = INK; ctx.fillStyle = INK; ctx.clearRect(0,0,r.width,r.height);
   dirty = false; $('save').disabled = true;
 }
-function pos(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
-cv.addEventListener('pointerdown', e => { e.preventDefault(); cv.setPointerCapture(e.pointerId); drawing = true; last = pos(e); ctx.beginPath(); ctx.arc(last.x,last.y,1.1,0,7); ctx.fillStyle='#0b1f6b'; ctx.fill(); });
-cv.addEventListener('pointermove', e => { if (!drawing) return; e.preventDefault(); const p = pos(e); ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last = p; dirty = true; $('save').disabled = false; });
-['pointerup','pointercancel','pointerleave'].forEach(t => cv.addEventListener(t, () => drawing = false));
+function pt(e) { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top, t: performance.now(), p: e.pressure }; }
+function widthFor(a, b) {
+  const d = Math.hypot(b.x - a.x, b.y - a.y), dt = Math.max(1, b.t - a.t), v = d / dt; // px per ms
+  let w = 3.4 - Math.min(v, 3) * 0.85;               // cepat = tipis, lambat = tebal
+  if (b.p && b.p > 0 && b.p !== 0.5) w *= 0.6 + b.p;  // tekanan stylus jika ada
+  w = Math.max(0.9, Math.min(3.8, w));
+  lastW = lastW * 0.65 + w * 0.35;                    // perhalus perubahan tebal
+  return lastW;
+}
+function seg(p0, p1, p2, w0, w1) {
+  // kurva kuadrat dari titik tengah ke titik tengah, digambar bertahap agar tebal berubah halus
+  const m1 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 }, m2 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+  const n = Math.max(2, Math.ceil(Math.hypot(m2.x - m1.x, m2.y - m1.y) / 1.5));
+  let px = m1.x, py = m1.y;
+  for (let i = 1; i <= n; i++) {
+    const t = i / n, u = 1 - t;
+    const x = u*u*m1.x + 2*u*t*p1.x + t*t*m2.x, y = u*u*m1.y + 2*u*t*p1.y + t*t*m2.y;
+    ctx.lineWidth = w0 + (w1 - w0) * t;
+    ctx.globalAlpha = 0.92;
+    ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(x, y); ctx.stroke();
+    px = x; py = y;
+  }
+  ctx.globalAlpha = 1;
+}
+cv.addEventListener('pointerdown', e => {
+  e.preventDefault(); cv.setPointerCapture(e.pointerId); drawing = true; lastW = 2.4;
+  const p = pt(e); pts = [p, p];
+  ctx.beginPath(); ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2); ctx.fill();
+});
+cv.addEventListener('pointermove', e => {
+  if (!drawing) return; e.preventDefault();
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of evs) {
+    const p = pt(ev), a = pts[pts.length - 1];
+    if (Math.hypot(p.x - a.x, p.y - a.y) < 0.8) continue;
+    const w0 = lastW, w1 = widthFor(a, p);
+    pts.push(p);
+    const n = pts.length; seg(pts[n-3], pts[n-2], pts[n-1], w0, w1);
+  }
+  dirty = true; $('save').disabled = false;
+});
+function endStroke() {
+  if (!drawing) return; drawing = false;
+  const n = pts.length;
+  if (n >= 2) { const a = pts[n-2], b = pts[n-1]; ctx.lineWidth = Math.max(0.8, lastW * 0.6); ctx.beginPath(); ctx.moveTo((a.x+b.x)/2, (a.y+b.y)/2); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+  pts = [];
+}
+['pointerup','pointercancel','pointerleave'].forEach(t => cv.addEventListener(t, endStroke));
 function openPad() { $('padTitle').textContent = 'Tanda tangan: ' + me.name; $('padmsg').textContent = ''; $('pad').classList.add('on'); requestAnimationFrame(sizeCanvas); }
 $('clr').onclick = sizeCanvas;
 $('cancel').onclick = () => $('pad').classList.remove('on');
@@ -183,7 +231,7 @@ function trimmed() {
   for (let y=0;y<h;y++) for (let x=0;x<w;x++) if (px[(y*w+x)*4+3]>10){ if(x<x0)x0=x; if(x>x1)x1=x; if(y<y0)y0=y; if(y>y1)y1=y; }
   if (x1<=x0) return null;
   const pad = 8, sw = x1-x0+pad*2, sh = y1-y0+pad*2;
-  const scale = Math.min(1, 700/sw, 300/sh);
+  const scale = Math.min(1, 900/sw, 380/sh);
   const o = document.createElement('canvas'); o.width = Math.round(sw*scale); o.height = Math.round(sh*scale);
   o.getContext('2d').drawImage(cv, x0-pad, y0-pad, sw, sh, 0, 0, o.width, o.height);
   return o.toDataURL('image/png');
@@ -213,24 +261,22 @@ async function resetSig(key) {
 $('dl').onclick = async () => {
   const m = $('dlmsg'); m.className = 'msg'; m.textContent = 'Menyiapkan PDF...';
   try {
-    const { PDFDocument } = PDFLib; const pdf = await PDFDocument.create();
-    const W = 595.28, H = 841.89;
-    for (let i = 1; i <= PAGES; i++) {
-      const bytes = await (await fetch('img/h-' + i + '.jpg')).arrayBuffer();
-      const jpg = await pdf.embedJpg(bytes); const pg = pdf.addPage([W, H]);
-      pg.drawImage(jpg, { x: 0, y: 0, width: W, height: H });
-      for (const s of SIGNERS.filter(s => s.page === i && data[s.key])) {
-        const png = await pdf.embedPng(data[s.key].img);
-        const bw = s.w*W, bh = s.h*H, sc = Math.min(bw/png.width, bh/png.height);
-        const dw = png.width*sc, dh = png.height*sc;
-        pg.drawImage(png, { x: s.x*W + (bw-dw)/2, y: H - (s.y*H + bh), width: dw, height: dh });
-      }
+    const { PDFDocument } = PDFLib;
+    const pdf = await PDFDocument.load(await (await fetch('notula.pdf', { cache: 'no-store' })).arrayBuffer());
+    const pages = pdf.getPages();
+    for (const s of SIGNERS.filter(s => data[s.key])) {
+      const pg = pages[s.page - 1]; const { width: W, height: H } = pg.getSize();
+      const png = await pdf.embedPng(data[s.key].img);
+      const bw = s.w*W, bh = s.h*H, sc = Math.min(bw/png.width, bh/png.height);
+      const dw = png.width*sc, dh = png.height*sc;
+      pg.drawImage(png, { x: s.x*W + (bw-dw)/2, y: H - (s.y*H + bh), width: dw, height: dh });
     }
     pdf.setTitle('Notula Rapat Monitoring Lanjutan Pengampuan 13 November 2026');
     const blob = new Blob([await pdf.save()], { type: 'application/pdf' });
+    const done = SIGNERS.filter(s => data[s.key]).length;
     const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
     a.download = 'Notula_13_November_2026_Bertanda_Tangan.pdf'; document.body.appendChild(a); a.click(); a.remove();
-    m.className = 'msg ok'; m.textContent = 'PDF berhasil dibuat.';
+    m.className = 'msg ok'; m.textContent = 'PDF berhasil dibuat (' + done + ' dari ' + SIGNERS.length + ' tanda tangan).';
   } catch (e) { m.className = 'msg err'; m.textContent = 'Gagal membuat PDF: ' + e.message; }
 };
 
