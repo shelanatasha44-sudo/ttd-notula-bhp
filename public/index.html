@@ -843,11 +843,20 @@ function openRevision(justApproved) {
     };
   });
 }
-// pejabat (Kepala Kantor/Seksi/Subbagian, Kurator Ahli Madya): formal; pegawai lain (Sdr./Sdri.): santai tapi sopan
+// pejabat (Kepala Kantor/Seksi/Subbagian, Kurator Ahli Madya): formal; pegawai lain: bro/sis, santai tapi sopan, variatif
 const pejabatRole = r => /kepala|ahli madya/i.test(r || '');
+const WA_GAUL = [
+  (b, n, w, t, l) => `Halo ${b} ${n}, selamat ${w} 👋\n\n*${t}* udh siap nih. Minta tolong dibaca dl terus ditandatangani lewat link ini ya:\n${l}\n\nKalau ada yg perlu dikoreksi, langsung tandai aja di situ. Makasih banyak ya! 🙏😊`,
+  (b, n, w, t, l) => `Hai ${b} ${n}! ✨\n\nAda notula yg nunggu tanda tangan kamu nih: *${t}*.\nCek di sini ya:\n${l}\n\nGak lama kok, cukup baca terus ttd pakai jari. Thank you! 🙌`,
+  (b, n, w, t, l) => `Selamat ${w}, ${b} ${n} 😄\n\nMau minta tolong sebentar ya, *${t}* udh bisa ditandatangani di link ini:\n${l}\n\nKalau ada typo atau yg kurang pas, bisa langsung dikoreksi di situ. Makasih ya! 🙏`,
+  (b, n, w, t, l) => `Halo halo ${b} ${n} 👋\n\nNotulanya udh jadi nih: *${t}*.\nBoleh dicek dl, kalau udh oke langsung ttd ya:\n${l}\n\nMakasih banyak, semangat terus! 💪😊`,
+  (b, n, w, t, l) => `Hai ${b} ${n}, selamat ${w}! ☺️\n\nIzin kirim link ttd untuk *${t}* ya:\n${l}\n\nBaca santai aja dl, kalau ada yg mau dikoreksi tinggal tandai. Makasih ya! 🙏✨`,
+  (b, n, w, t, l) => `${b[0].toUpperCase() + b.slice(1)} ${n}, selamat ${w} 🙌\n\n*${t}* tinggal nunggu tanda tangan kamu nih. Linknya di sini ya:\n${l}\n\nKalau ada koreksi, langsung aja tandai di situ. Thanks a lot! 😊`
+];
+const hashStr = x => [...String(x)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
 const waText = s => pejabatRole(s.role)
   ? `Selamat ${salam()} ${s.sapaan || 'Bapak/Ibu'} ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`
-  : `Halo ${s.sapaan === 'Ibu' ? 'Sdri.' : 'Sdr.'} ${String(s.name).trim().split(/\s+/)[0]}, selamat ${salam()} 👋\n\n*${S.doc.title}* udh siap nih. Minta tolong dibaca dl terus ditandatangani lewat link ini ya:\n${linkFor(s)}\n\nKalau ada yg perlu dikoreksi, langsung tandai aja di situ. Makasih banyak ya! 🙏😊`;
+  : WA_GAUL[(hashStr(DOC_ID) + Math.max(0, ((S.admin && S.admin.signers) || []).findIndex(x => x.key === s.key))) % WA_GAUL.length](s.sapaan === 'Ibu' ? 'sis' : 'bro', String(s.name).trim().split(/\s+/)[0], salam(), S.doc.title, linkFor(s));
 async function resetSig(key) {
   if (!confirm('Hapus tanda tangan ini?')) return;
   try { await api('docs/' + DOC_ID + '/sign', { method: 'POST', body: JSON.stringify({ key, k: ADMIN, action: 'reset' }) }); toast('Tanda tangan dihapus'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
