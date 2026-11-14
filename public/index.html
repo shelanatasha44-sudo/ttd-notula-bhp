@@ -650,13 +650,14 @@ async function loadAdmin() {
 }
 // link yang dibagikan memakai s.id (alias = kode link pendek); link asli dipakai sebagai tujuan s.id
 const directLink = s => s.short ? location.origin + '/' + s.short : location.origin + '/?d=' + encodeURIComponent(DOC_ID) + '&n=' + encodeURIComponent(s.key) + '&k=' + encodeURIComponent(s.token);
-const linkFor = s => s.short ? 'https://s.id/' + s.short : directLink(s);
+const linkFor = s => s.short && S.admin && S.admin.sid ? 'https://s.id/' + s.short : directLink(s);
 const viewLink = () => location.origin + '/?d=' + encodeURIComponent(DOC_ID) + '&v=' + encodeURIComponent(S.admin.view || '');
 function renderAdmin() {
   const a = S.admin;
   $('adminCard').innerHTML = `<div id="approvedCard"></div><div class="card"><h2>🛠️ Panel Admin</h2>
     <div class="tabs"><button class="tab on" data-t="links">🔗 Link</button><button class="tab" data-t="rev">📄 Revisi</button><button class="tab" data-t="pos">🎯 Posisi ttd</button><button class="tab" data-t="more">⚙️ Lainnya</button></div>
-    <div data-p="links">${a.signers.map(s => `<div class="row"><div class="grow"><b>${esc(s.name)}</b><span class="small">${esc(s.role)}</span>
+    <div data-p="links"><label style="display:flex;gap:8px;align-items:center;font-size:14px;margin:0 0 6px"><input type="checkbox" id="sidOn" ${a.sid ? 'checked' : ''}> Link s.id untuk notula ini sudah dibuat (bagikan link s.id)</label>
+      ${a.signers.map(s => `<div class="row"><div class="grow"><b>${esc(s.name)}</b><span class="small">${esc(s.role)}</span>
       ${s.token ? `<div class="linkbox"><input type="text" readonly value="${esc(linkFor(s))}"></div><div class="small" style="margin-top:4px">Tujuan s.id: <a href="#" data-direct="${esc(s.key)}">salin link asli</a> · alias <b>${esc(s.short || '')}</b></div>` : '<div class="small">Link lama sudah dibagikan sebelumnya (tetap berlaku). Tekan Link baru jika ingin membuat ulang.</div>'}</div>
       <div class="btns" style="flex-direction:column;flex:none">${s.token ? `<button class="btn sm" data-copy="${esc(s.key)}">Salin</button><a class="btn sm sec" style="text-decoration:none;text-align:center" target="_blank" href="https://wa.me/?text=${encodeURIComponent(waText(s))}">WA</a>` : ''}
       <button class="btn sm sec" data-regen="${esc(s.key)}">Link baru</button></div></div>`).join('')}
@@ -669,6 +670,9 @@ function renderAdmin() {
   const root = $('adminCard');
   root.querySelectorAll('.tab').forEach(t => t.onclick = () => { root.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x === t)); root.querySelectorAll('[data-p]').forEach(p => p.classList.toggle('hidden', p.dataset.p !== t.dataset.t)); });
   root.querySelectorAll('[data-copy]').forEach(b => b.onclick = () => copy(linkFor(a.signers.find(s => s.key === b.dataset.copy))));
+  $('sidOn').onchange = async e => {
+    try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, sid: e.target.checked }) }); toast(e.target.checked ? 'Link s.id dipakai' : 'Link langsung dipakai'); loadAdmin(); } catch (er) { toast('⚠️ ' + er.message); }
+  };
   root.querySelectorAll('[data-direct]').forEach(b => b.onclick = e => { e.preventDefault(); copy(directLink(a.signers.find(s => s.key === b.dataset.direct))); });
   root.querySelectorAll('[data-regen]').forEach(b => b.onclick = async () => {
     if (!confirm('Buat link baru? Link lama untuk nama ini tidak berlaku lagi.')) return;

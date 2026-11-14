@@ -244,10 +244,11 @@ export async function onRequest(ctx) {
     // ---------- admin: detail (dengan link), ubah, revisi PDF, hapus ----------
     if (sub === 'admin') {
       if (!(await isAdmin(k))) return err('Khusus admin', 403);
-      if (m === 'GET') return json({ doc: { ...publicDoc(d), view: d.view, signers: d.signers.map(({ tokenHash, ...s }) => ({ ...s, hasLink: !!tokenHash })) } });
+      if (m === 'GET') return json({ doc: { ...publicDoc(d), view: d.view, sid: d.sid ?? (d.id === 'notula-20261113'), signers: d.signers.map(({ tokenHash, ...s }) => ({ ...s, hasLink: !!tokenHash })) } });
       if (m === 'PUT') {
         if (body.title) d.title = clean(body.title, 200);
         if ('subtitle' in body) d.subtitle = clean(body.subtitle, 200);
+        if ('sid' in body) d.sid = !!body.sid;
         if (body.signers) { d.signers = await ensureTokens(normSigners(body.signers, d.signers)); await assignShorts(env, d); }
         if (body.regenerate) {
           const s = d.signers.find(x => x.key === body.regenerate);
