@@ -721,7 +721,7 @@ async function downloadPdf() {
       if (stamp && s === kepala) {
         // stempel menimpa ttd Kepala BHP: pusat di bagian kiri ttd, garis ttd tetap di atas stempel
         const D = Math.max(95, Math.min(118, dw * 0.8));
-        pg.drawImage(stamp, { x: dx + dw * 0.28 - D / 2, y: dy + dh * 0.5 - D / 2, width: D, height: D, opacity: 0.9 });
+        pg.drawImage(stamp, { x: dx + dw * 0.12 - D / 2, y: dy + dh * 0.5 - D / 2, width: D, height: D, opacity: 0.9 });
       }
       pg.drawImage(png, { x: dx, y: dy, width: dw, height: dh }); n++;
     }
