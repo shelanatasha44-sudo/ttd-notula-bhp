@@ -409,13 +409,19 @@ function renderStatic() {
 }
 
 // ---------------- overlays: ttd, koreksi, draft ----------------
+// satu orang bisa punya beberapa kolom ttd (nama sama): ttd sekali, tampil di semua posisinya
+const allPos = s => [s, ...(s.more || [])].filter(p => p && (p.x || p.y));
+const flatPos = list => list.flatMap(s => allPos(s).length ? allPos(s).map(p => ({ ...s, page: p.page, x: p.x, y: p.y, w: p.w, h: p.h, more: undefined })) : [{ ...s, more: undefined }]);
 function place(el, x, y, w, h) { Object.assign(el.style, { left: x * 100 + '%', top: y * 100 + '%', width: w * 100 + '%', height: h * 100 + '%' }); }
 function renderOverlays() {
   PAGES.forEach(p => p.ov.innerHTML = '');
   for (const s of S.doc.signers) {
-    if (!sigOk(s) || !ovOf(s.page)) continue;
-    const b = document.createElement('div'); b.className = 'sig'; place(b, s.x, s.y, s.w, s.h);
-    b.innerHTML = `<img src="${S.sigs[s.key].img}" alt="Tanda tangan ${esc(s.name)}">`; ovOf(s.page).appendChild(b);
+    if (!sigOk(s)) continue;
+    for (const p of allPos(s)) {
+      if (!ovOf(p.page)) continue;
+      const b = document.createElement('div'); b.className = 'sig'; place(b, p.x, p.y, p.w, p.h);
+      b.innerHTML = `<img src="${S.sigs[s.key].img}" alt="Tanda tangan ${esc(s.name)}">`; ovOf(p.page).appendChild(b);
+    }
   }
   const vis = S.kor.filter(c => c.status !== 'dibatalkan');
   vis.forEach((c, i) => drawKor(c, String(i + 1), false));
@@ -715,15 +721,19 @@ async function downloadPdf() {
       if (r.ok) stamp = await pdf.embedPng(await r.arrayBuffer());
     }
     for (const s of S.doc.signers.filter(sigOk)) {
-      const pg = pages[s.page - 1]; if (!pg) continue; const { width: W, height: H } = pg.getSize();
-      const png = await pdf.embedPng(S.sigs[s.key].img); const bw = s.w * W, bh = s.h * H, sc = Math.min(bw / png.width, 1.65 * bh / png.height);
-      const dw = png.width * sc, dh = png.height * sc, dx = s.x * W + (bw - dw) / 2, dy = H - (s.y * H + bh);
-      if (stamp && s === kepala) {
+      const png = await pdf.embedPng(S.sigs[s.key].img);
+      for (const [pi, p] of allPos(s).entries()) {
+      const pg = pages[p.page - 1]; if (!pg) continue; const { width: W, height: H } = pg.getSize();
+      const bw = p.w * W, bh = p.h * H, sc = Math.min(bw / png.width, 1.65 * bh / png.height);
+      const dw = png.width * sc, dh = png.height * sc, dx = p.x * W + (bw - dw) / 2, dy = H - (p.y * H + bh);
+      if (stamp && s === kepala && pi === 0) {
         // stempel menimpa ttd Kepala BHP: pusat di bagian kiri ttd, garis ttd tetap di atas stempel
         const D = Math.max(95, Math.min(118, dw * 0.8));
         pg.drawImage(stamp, { x: dx + dw * 0.12 - D / 2, y: dy + dh * 0.5 - D / 2, width: D, height: D, opacity: 0.9 });
       }
-      pg.drawImage(png, { x: dx, y: dy, width: dw, height: dh }); n++;
+      pg.drawImage(png, { x: dx, y: dy, width: dw, height: dh });
+      }
+      n++;
     }
     pdf.setTitle(S.doc.title);
     const blob = new Blob([await pdf.save()], { type: 'application/pdf' }), a = document.createElement('a');
@@ -828,7 +838,7 @@ function openRevision(justApproved) {
         try {
           const pages = await analyzePdf(URL.createObjectURL(f));
           const found = detectSigners(pages, S.admin.signers.map(x => ({ key: x.key, name: x.name, role: x.role })));
-          signers = S.admin.signers.map(x => { const d = found.find(y => y.key === x.key); const src = d || x; return { key: x.key, name: x.name, role: x.role, page: src.page, x: src.x, y: src.y, w: src.w, h: src.h }; });
+          signers = S.admin.signers.map(x => { const d = found.find(y => y.key === x.key); const src = d || x; return { key: x.key, name: x.name, role: x.role, page: src.page, x: src.x, y: src.y, w: src.w, h: src.h, more: d ? d.more : x.more }; });
         } catch (er) { signers = null; }
         msg.textContent = 'Mengunggah dan menimpa file lama...';
         await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, pdf: await fileB64(f), ...(signers ? { signers } : {}) }) });
@@ -865,7 +875,7 @@ function fileB64(f) { return new Promise((res, rej) => { const r = new FileReade
 
 // ================= PENGATUR POSISI KOLOM TTD =================
 function openPlacer(signers, pdfUrl, onSave) {
-  const list = signers.map(s => ({ ...s, w: s.w || 0.26, h: s.h || 0.06 }));
+  const list = flatPos(signers).map(s => ({ ...s, w: s.w || 0.26, h: s.h || 0.06 }));
   let cur = 0;
   const wrap = document.createElement('div');
   wrap.style.cssText = 'position:fixed;inset:0;background:var(--bg);z-index:45;overflow:auto';
@@ -876,7 +886,7 @@ function openPlacer(signers, pdfUrl, onSave) {
     <div style="max-width:860px;margin:0 auto;padding:12px" id="plPages"></div>`;
   document.body.appendChild(wrap);
   const names = wrap.querySelector('#plNames');
-  const drawNames = () => { names.innerHTML = list.map((s, i) => `<button class="chip ${i === cur ? 'on' : ''}" data-i="${i}">${s.x || s.y ? '✓ ' : ''}${esc(s.name)}</button>`).join(''); names.querySelectorAll('.chip').forEach(b => b.onclick = () => { cur = +b.dataset.i; drawNames(); drawBoxes(); }); };
+  const drawNames = () => { names.innerHTML = list.map((s, i) => { const k = list.slice(0, i + 1).filter(x => x.key === s.key && x.name === s.name).length, tot = list.filter(x => x.key === s.key && x.name === s.name).length; return `<button class="chip ${i === cur ? 'on' : ''}" data-i="${i}">${s.x || s.y ? '✓ ' : ''}${esc(s.name)}${tot > 1 ? ' (' + k + ')' : ''}</button>`; }).join(''); names.querySelectorAll('.chip').forEach(b => b.onclick = () => { cur = +b.dataset.i; drawNames(); drawBoxes(); }); };
   let pls = [];
   function drawBoxes() {
     pls.forEach(p => p.ov.querySelectorAll('.sbox').forEach(e => e.remove()));
@@ -951,6 +961,13 @@ async function analyzePdf(url) {
   }
   return pages;
 }
+// baris terdekat di atas nama pada kolom yang sama: teks labelnya (mis. "Pengampu,") dan jarak kosongnya
+function labelAbove(p, l, x0, x1) {
+  const ov = it => it.x1 > x0 - 10 && it.x0 < x1 + 10;
+  const above = p.lines.filter(o => o !== l && o.bottom <= l.top + 0.5 && o.items.some(ov)).pop();
+  if (!above) return null;
+  return { lab: above.items.filter(ov).map(it => it.str).join(' ').replace(/\s+/g, ' ').trim(), gap: l.top - above.bottom };
+}
 // ruang kosong (pt) di atas sebuah baris pada rentang x tertentu
 function gapAbove(p, l, x0, x1) {
   let best = l.top; // sampai tepi atas halaman
@@ -969,35 +986,75 @@ function detectSigners(pages, candidates) {
   const found = [];
   for (const cand of candidates) {
     const key = normTxt(String(cand.name).replace(/,.*$/, '')); if (key.length < 4) continue;
-    let hit = null;
-    for (let pi = sp; pi < pages.length; pi++) {
-      const p = pages[pi];
-      p.lines.forEach((l, li) => {
-        if (pi === sp && li < sl) return;
-        const at = l.norm.indexOf(key); if (at < 0 || hit) return; // pakai kemunculan pertama setelah penutup (blok ttd), bukan keterangan foto
-        hit = { pi, l, x0: l.chars[at].x, x1: l.chars[at + key.length - 1].x2 };
+    const hits = [];
+    for (let pi = 0; pi < pages.length; pi++) {
+      const pg = pages[pi];
+      pg.lines.forEach((l, li) => {
+        const at = l.norm.indexOf(key); if (at < 0) return;
+        // "berdiri sendiri" = ada jarak lebar sebelum dan sesudah nama (kolom ttd), boleh diikuti gelar pendek
+        const C = l.chars, e = at + key.length, gp = i => C[i].x - C[i - 1].x2 > 10;
+        let k = e; while (k < C.length && k - e < 6 && !gp(k)) k++;
+        const solo = (at === 0 || gp(at)) && (e >= C.length || gp(e) || k >= C.length || gp(k));
+        const x0 = C[at].x, x1 = C[e - 1].x2;
+        const rest = l.items.filter(it => it.x0 >= x1 - 1).map(it => it.str).join(' ');
+        const dots = /:\s*(\.{3,}|…|_{3,})/.test(rest); // baris "Nama : ......"
+        const la = solo && labelAbove(pg, l, x0, x1);
+        const space = !!(la && la.gap >= 22 && la.gap <= 140 && /,$/.test(la.lab)); // label "Jabatan," + ruang kosong di atas nama = tempat ttd
+        const after = pi > sp || (pi === sp && li >= sl);
+        hits.push({ pi, l, x0, x1, solo, sig: dots || space, after });
       });
     }
+    if (!hits.length) continue;
+    // kemunculan pertama setelah penutup = kolom ttd utama; kemunculan lain hanya dipakai bila barisnya berupa blok ttd
+    // (nama sendirian di baris, atau "Nama : ....."), bukan kalimat keterangan foto
+    const boxOf = hit => {
+      const p = pages[hit.pi], l = hit.l;
+      const after = l.items.filter(it => it.x0 >= hit.x1 - 1);
+      const colon = after.find(it => /:/.test(it.str));
+      let box;
+      if (colon) { // baris "Nama : ........"
+        const cx = colon.x0 + (colon.x1 - colon.x0) * (colon.str.indexOf(':') + 1) / Math.max(1, colon.str.length);
+        const next = l.items.find(it => it.x0 > cx + 20 && /[a-z]/i.test(it.str) && !/^\.+$/.test(it.str.trim()));
+        const x0 = cx + 4, x1 = Math.min(next ? next.x0 - 12 : x0 + 140, x0 + 150, p.W - 25);
+        const gap = gapAbove(p, l, x0, x1);
+        const up = Math.max(12, Math.min(26, gap - 2));
+        box = { x: x0, y: l.top - up, w: Math.max(60, x1 - x0), h: (l.bottom - l.top) + up + 2 };
+      } else { // nama di bawah blok jabatan: kolom ttd di atas nama
+        const cx = (hit.x0 + hit.x1) / 2, w = 170, bx = Math.max(20, Math.min(p.W - w - 20, cx - w / 2));
+        const gap = gapAbove(p, l, bx, bx + w), hh = Math.max(36, Math.min(96, gap - 4));
+        box = { x: bx, y: l.top - hh - 2, w, h: hh };
+      }
+      return { page: hit.pi + 1, x: box.x / p.W, y: Math.max(0, box.y) / p.H, w: box.w / p.W, h: box.h / p.H, colon: !!colon };
+    };
+    // kolom ttd utama = kemunculan pertama yang berbentuk blok ttd; bila tak ada, kemunculan pertama setelah penutup ("Demikian")
+    const sigHits = hits.filter(h => h.sig), hit = sigHits[0] || hits.find(h => h.after);
     if (!hit) continue;
-    const p = pages[hit.pi], l = hit.l;
-    const after = l.items.filter(it => it.x0 >= hit.x1 - 1);
-    const colon = after.find(it => /:/.test(it.str));
-    let box;
-    if (colon) { // baris "Nama : ........"
-      const cx = colon.x0 + (colon.x1 - colon.x0) * (colon.str.indexOf(':') + 1) / Math.max(1, colon.str.length);
-      const next = l.items.find(it => it.x0 > cx + 20 && /[a-z]/i.test(it.str) && !/^\.+$/.test(it.str.trim()));
-      const x0 = cx + 4, x1 = Math.min(next ? next.x0 - 12 : x0 + 140, x0 + 150, p.W - 25);
-      const gap = gapAbove(p, l, x0, x1);
-      const up = Math.max(12, Math.min(44, gap - 2));
-      box = { x: x0, y: l.top - up, w: Math.max(60, x1 - x0), h: (l.bottom - l.top) + up + 2 };
-    } else { // nama di bawah blok jabatan: kolom ttd di atas nama
-      const cx = (hit.x0 + hit.x1) / 2, w = 170, bx = Math.max(20, Math.min(p.W - w - 20, cx - w / 2));
-      const gap = gapAbove(p, l, bx, bx + w), hh = Math.max(36, Math.min(96, gap - 4));
-      box = { x: bx, y: l.top - hh - 2, w, h: hh };
-    }
-    found.push({ ...cand, page: hit.pi + 1, x: box.x / p.W, y: Math.max(0, box.y) / p.H, w: box.w / p.W, h: box.h / p.H, _ord: hit.pi * 1e6 + l.top * 1e3 + hit.x0 });
+    const main = boxOf(hit);
+    const more = sigHits.filter(h => h !== hit).map(boxOf).slice(0, 5).map(({ colon, ...b }) => b);
+    const { colon: _c, ...mb } = main;
+    found.push({ ...cand, ...mb, ...(more.length ? { more } : {}), _ord: hit.pi * 1e6 + hit.l.top * 1e3 + hit.x0 });
   }
   return found.sort((a, b) => a._ord - b._ord).map(({ _ord, ...s }) => s);
+}
+// penanda tangan di luar daftar pegawai (mis. Pengampu): nama di bawah label berakhiran koma dengan ruang ttd di atasnya
+function findExternal(pages, known) {
+  const kn = new Set(known.map(k => normTxt(String(k.name).replace(/,.*$/, ''))));
+  const bad = /\b(kepala|balai|kurator|keperdataan|peninggalan|harta|ahli|madya|muda|pertama|seksi|wilayah|medan|tanggal|dibuat|mengetahui|lampiran|nomor|kantor|kementerian)\b/i;
+  const nameRe = /^[A-Z][A-Za-z'’.-]+(?:\s+[A-Z][A-Za-z'’.-]*){1,6}(?:\s*,\s*[A-Za-z][A-Za-z.]*(?:\s+[A-Za-z][A-Za-z.]*)*)*$/;
+  const out = [];
+  pages.forEach(p => p.lines.forEach(l => {
+    const groups = []; // potong baris menjadi kolom (jarak antar item > 15pt)
+    l.items.forEach(it => { const g = groups[groups.length - 1]; if (g && it.x0 - g.x1 < 15) { g.str += (it.x0 - g.x1 > 1.5 ? ' ' : '') + it.str; g.x1 = it.x1; } else groups.push({ x0: it.x0, x1: it.x1, str: it.str }); });
+    for (const g of groups) {
+      const t = g.str.replace(/\s+/g, ' ').trim();
+      if (!nameRe.test(t) || bad.test(t) || kn.has(normTxt(t.replace(/,.*$/, ''))) || out.some(o => o.name === t)) continue;
+      const la = labelAbove(p, l, g.x0, g.x1);
+      if (!la || la.gap < 22 || la.gap > 140 || !/,$/.test(la.lab)) continue;
+      const lab = la.lab;
+      out.push({ name: t, role: /^mengetahui,?$/i.test(lab) ? '' : lab.replace(/,$/, '') });
+    }
+  }));
+  return out;
 }
 function guessMeta(pages, fileName) {
   const t = pages.map(p => p.text).join('\n');
@@ -1032,7 +1089,7 @@ function newDocWizard() {
       if (!$('nTitle').value) $('nTitle').value = meta.title;
       if (!$('nSub').value) $('nSub').value = meta.subtitle;
       const typed = parseSignerText($('nSigners').value);
-      const cands = typed.length ? typed.map(t => ({ ...t, role: t.role || (pegawai.find(p => normTxt(p.name) === normTxt(t.name)) || {}).role || '' })) : pegawai;
+      const cands = typed.length ? typed.map(t => ({ ...t, role: t.role || (pegawai.find(p => normTxt(p.name) === normTxt(t.name)) || {}).role || '' })) : [...pegawai, ...findExternal(pages, pegawai)];
       detected = detectSigners(pages, cands);
       if (!typed.length) $('nSigners').value = detected.map(s => s.name + (s.role ? ' - ' + s.role : '')).join('\n');
       const miss = typed.filter(t => !detected.some(d => normTxt(d.name) === normTxt(t.name)));
@@ -1048,7 +1105,7 @@ function newDocWizard() {
     if (!f) return toast('Pilih berkas PDF dulu'); if (!title) return toast('Isi judul dulu');
     const typed = parseSignerText($('nSigners').value);
     if (!typed.length) return toast('Isi minimal satu penanda tangan');
-    const signers = typed.map(t => { const d = detected.find(x => normTxt(x.name) === normTxt(t.name)); return d ? { ...d, name: t.name, role: t.role || d.role } : { name: t.name, role: t.role, page: 1, x: 0, y: 0 }; });
+    const seenN = new Set(); const signers = typed.filter(t => { const n = normTxt(t.name); if (seenN.has(n)) return false; seenN.add(n); return true; }).map(t => { const d = detected.find(x => normTxt(x.name) === normTxt(t.name)); return d ? { ...d, name: t.name, role: t.role || d.role } : { name: t.name, role: t.role, page: 1, x: 0, y: 0 }; });
     openPlacer(signers, fileUrl || URL.createObjectURL(f), async list => {
       const r = await api('docs', { method: 'POST', body: JSON.stringify({ k: ADMIN, title, subtitle: $('nSub').value.trim(), pdf: await fileB64(f), signers: list }) });
       confetti(); location.href = adminDoc(r.id);

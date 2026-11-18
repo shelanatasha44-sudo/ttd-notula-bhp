@@ -15,7 +15,7 @@ const ADMIN_HASH = '5085f6ac55a05a54ce1c8c743c5e74d72a63b28dcc8efc8eb0d5301d59da
 // Sapaan pegawai BHP Medan (dari digit ke-15 NIP pada sheet Daftar Pegawai: 1 = Bapak, 2 = Ibu)
 const SAPAAN = {"syafriadilubis": "Bapak", "nelsydepari": "Ibu", "lusianatarihoran": "Ibu", "elsinthadamayanti": "Ibu", "budiyanto": "Bapak", "syuhada": "Bapak", "dartimnovmtharahap": "Bapak", "marianibrmarbun": "Ibu", "tumiarsimanjorang": "Ibu", "nanangsuryapurnama": "Bapak", "titinwahyunasaridongoran": "Ibu", "jokoprabowo": "Bapak", "dianstevanytongli": "Ibu", "mtaufikrahman": "Bapak", "shelanatasha": "Ibu", "hutrizebua": "Bapak", "nurfairuzdibanasution": "Ibu", "diajengkartikasari": "Ibu", "rifalsaptahadi": "Bapak", "andreyosuasurbakti": "Bapak", "teukumeurahalbar": "Bapak", "hartoalfredosiregar": "Bapak", "annisadwimarina": "Ibu", "elsyindriani": "Ibu", "yusrilihzamahendra": "Bapak", "nindia": "Ibu", "naekparlindungansibuea": "Bapak", "bettyirawatisinaga": "Ibu", "adelinairmadewitasiagian": "Ibu", "agniramaniyamaharani": "Ibu", "tridolasiregar": "Ibu", "febrinasiringoringo": "Ibu", "indriananurkamsiah": "Ibu", "royalexander": "Bapak"};
 const normName = n => String(n || '').replace(/,.*$/, '').replace(/\b(Dr|Drs|Ir|H|Hj)\.?\s+/gi, '').toLowerCase().replace(/[^a-z]/g, '');
-const PEGAWAI = [{"name": "Syafriadi Lubis", "role": "Kepala Balai Harta Peninggalan Medan", "sapaan": "Bapak"}, {"name": "Nelsy Depari", "role": "Kepala Subbagian Umum", "sapaan": "Ibu"}, {"name": "Lusiana Tarihoran", "role": "Kepala Seksi Harta Peninggalan Wilayah I", "sapaan": "Ibu"}, {"name": "Elsintha Damayanti", "role": "Kepala Seksi Harta Peninggalan Wilayah II", "sapaan": "Ibu"}, {"name": "Budiyanto", "role": "Kepala Seksi Harta Peninggalan Wilayah III", "sapaan": "Bapak"}, {"name": "Syuhada", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Bapak"}, {"name": "Dartimnov M.T Harahap", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Bapak"}, {"name": "Mariani Br Marbun", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Ibu"}, {"name": "Tumiar Simanjorang", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Ibu"}, {"name": "Nanang Surya Purnama", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Bapak"}, {"name": "Titin Wahyunasari Dongoran", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Ibu"}, {"name": "Joko Prabowo", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Bapak"}, {"name": "Dian Stevany Tongli", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Ibu"}, {"name": "M. Taufik Rahman", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Shela Natasha", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Hutri Zebua", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Nur Fairuz Diba Nasution", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Diajeng Kartika Sari", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Rifal Sapta Hadi", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Andre Yosua Surbakti", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Teuku Meurah Albar", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Harto Alfredo Siregar", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Annisa Dwi Marina", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Elsy Indriani", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Yusril Ihza Mahendra", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Nindia", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Naek Parlindungan Sibuea", "role": "Pengolah Data dan Informasi", "sapaan": "Bapak"}, {"name": "Betty Irawati Sinaga", "role": "Pengelola Layanan Operasional", "sapaan": "Ibu"}, {"name": "Adelina Irmadewita Siagian", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Agni Ramaniya Maharani", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Tridola Siregar", "role": "Penata Kelola Pemerintahan", "sapaan": "Ibu"}, {"name": "Febrina Siringoringo", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Indriana Nurkamsiah", "role": "Pengadministrasi Perkantoran", "sapaan": "Ibu"}, {"name": "Roy Alexander", "role": "Pengelola Layanan Pengadaan", "sapaan": "Bapak"}];
+const PEGAWAI = [{"name": "Syafriadi Lubis", "role": "Kepala Balai Harta Peninggalan Medan", "sapaan": "Bapak"}, {"name": "Nelsy Depari", "role": "Kepala Subbagian Umum", "sapaan": "Ibu"}, {"name": "Lusiana Tarihoran", "role": "Kepala Seksi Harta Peninggalan Wilayah I", "sapaan": "Ibu"}, {"name": "Elsintha Damayanti", "role": "Kepala Seksi Harta Peninggalan Wilayah II", "sapaan": "Ibu"}, {"name": "Budiyanto", "role": "Kepala Seksi Harta Peninggalan Wilayah III", "sapaan": "Bapak"}, {"name": "Syuhada", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Bapak"}, {"name": "Dartimnov M.T Harahap", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Bapak"}, {"name": "Mariani Br Marbun", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Ibu"}, {"name": "Tumiar Simanjorang", "role": "Kurator Keperdataan Ahli Madya", "sapaan": "Ibu"}, {"name": "Nanang Surya Purnama", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Bapak"}, {"name": "Titin Wahyunasari Dongoran", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Ibu"}, {"name": "Joko Prabowo", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Bapak"}, {"name": "Dian Stevany Tongli", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Ibu"}, {"name": "M. Taufik Rahman", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Shela Natasha", "role": "Kurator Keperdataan Ahli Muda", "sapaan": "Ibu"}, {"name": "Hutri Zebua", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Nur Fairuz Diba Nasution", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Diajeng Kartika Sari", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Rifal Sapta Hadi", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Andre Yosua Surbakti", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Teuku Meurah Albar", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Harto Alfredo Siregar", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Annisa Dwi Marina", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Elsy Indriani", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Yusril Ihza Mahendra", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Bapak"}, {"name": "Nindia", "role": "Kurator Keperdataan Ahli Pertama", "sapaan": "Ibu"}, {"name": "Naek Parlindungan Sibuea", "role": "Pengolah Data dan Informasi", "sapaan": "Bapak"}, {"name": "Betty Irawati Sinaga", "role": "Pengelola Layanan Operasional", "sapaan": "Ibu"}, {"name": "Adelina Irmadewita Siagian", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Agni Ramaniya Maharani", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Tridola Siregar", "role": "Penata Kelola Pemerintahan", "sapaan": "Ibu"}, {"name": "Febrina Siringoringo", "role": "Penelaah Teknis Kebijakan", "sapaan": "Ibu"}, {"name": "Indriana Nurkamsiah", "role": "Pengadministrasi Perkantoran", "sapaan": "Ibu"}, {"name": "Roy Alexander", "role": "Pengelola Layanan Pengadaan", "sapaan": "Bapak"}];
 // Pejabat (Kepala Kantor, Kepala Seksi/Subbagian, Kurator Ahli Madya): koreksinya otomatis disetujui
 function isPejabat(s) {
   const k = normName(s.name);
@@ -183,7 +183,7 @@ async function canView(d, k, v) {
 function publicDoc(d) {
   return {
     id: d.id, no: d.no, title: d.title, subtitle: d.subtitle, ver: d.ver, updated: d.updated, created: d.created,
-    signers: d.signers.map(({ key, name, role, page, x, y, w, h, sapaan, short }) => ({ key, name, role, page, x, y, w, h, sapaan: sapaan || sapaanOf(name), short })),
+    signers: d.signers.map(({ key, name, role, page, x, y, w, h, more, sapaan, short }) => ({ key, name, role, page, x, y, w, h, ...(more && more.length ? { more } : {}), sapaan: sapaan || sapaanOf(name), short })),
   };
 }
 async function getSigs(env, d) {
@@ -211,19 +211,29 @@ function b64ToBuf(b64) {
   return u.buffer;
 }
 
+// nama sama = satu orang: cukup satu kali ttd, posisi tambahan disimpan di "more"
+const nameKey = n => String(n || '').replace(/,.*$/, '').toLowerCase().replace(/[^a-z]/g, '');
+const posOf = s => ({ page: Math.max(1, parseInt(s.page) || 1), x: num(s.x), y: num(s.y), w: num(s.w) || 0.25, h: num(s.h) || 0.06 });
 function normSigners(list, prev = []) {
-  const used = new Set();
-  return (list || []).slice(0, 40).map((s, i) => {
+  const used = new Set(), out = [], byName = {};
+  (list || []).slice(0, 80).forEach((s, i) => {
+    const nk = nameKey(s.name), extra = [].concat(s.more || []).slice(0, 10).map(posOf).filter(p => p.x || p.y);
+    const ex = nk && byName[nk];
+    if (ex) { const p = posOf(s); ex.more = [...(ex.more || []), ...(p.x || p.y ? [p] : []), ...extra].slice(0, 10); return; }
+    if (out.length >= 40) return;
     let key = slug(s.key || s.name) || 'p' + (i + 1);
     while (used.has(key)) key += '-' + (i + 1);
     used.add(key);
     const old = prev.find(p => p.key === (s.key || key));
-    return {
+    const o = {
       key, name: clean(s.name, 120), role: clean(s.role, 160), sapaan: sapaanOf(s.name, s.sapaan), short: old?.short,
-      page: Math.max(1, parseInt(s.page) || 1), x: num(s.x), y: num(s.y), w: num(s.w) || 0.25, h: num(s.h) || 0.06,
-      token: old?.token, tokenHash: old?.tokenHash,
+      ...posOf(s), token: old?.token, tokenHash: old?.tokenHash,
     };
+    if (extra.length) o.more = extra;
+    if (nk) byName[nk] = o;
+    out.push(o);
   });
+  return out;
 }
 async function ensureTokens(signers) {
   for (const s of signers) {
