@@ -329,6 +329,13 @@ export async function onRequest(ctx) {
         if ('subtitle' in body) d.subtitle = clean(body.subtitle, 200);
         if ('sid' in body) d.sid = !!body.sid;
         if (body.signers) { d.signers = await ensureTokens(normSigners(body.signers, d.signers)); await assignShorts(env, d); }
+        if (body.manual && body.manual.key) { // ttd sudah ada di PDF (ttd basah/hasil pindai): tandai Sudah tanpa gambar
+          const s = d.signers.find(x => x.key === body.manual.key);
+          if (s) {
+            if (body.manual.on) await env.TTD.put('sig:' + id + ':' + s.key, JSON.stringify({ manual: true, at: new Date().toISOString(), ver: d.ver }));
+            else await env.TTD.delete('sig:' + id + ':' + s.key);
+          }
+        }
         if (body.regenerate) {
           const s = d.signers.find(x => x.key === body.regenerate);
           if (s) { s.token = rand(); s.tokenHash = await sha256(s.token); }

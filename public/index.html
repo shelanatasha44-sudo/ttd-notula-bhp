@@ -377,11 +377,23 @@ function renderStatic() {
   $('bar').style.width = pct + '%'; $('ring').style.setProperty('--p', pct); $('ringTx').textContent = pct + '%';
   $('list').innerHTML = d.signers.map(s => {
     const sg = S.sigs[s.key], ok = sigOk(s), old = sg && !ok;
-    return `<div class="row">${avatar(s.name, ok)}<div class="grow"><b>${esc(s.name)}</b><span class="small">${ok ? 'Ditandatangani ' + fmt(sg.at) : old ? 'Perlu tanda tangan ulang (koreksinya sudah direvisi)' : esc(s.role)}</span></div>
-      ${ok ? `<img class="sg" src="${sg.img}" alt="">` : ''}<span class="pill ${ok ? 'ok' : old ? 'bad' : 'no'}">${ok ? 'Sudah' : old ? 'Ulang' : 'Belum'}</span>
+    return `<div class="row">${avatar(s.name, ok)}<div class="grow"><b>${esc(s.name)}</b><span class="small">${ok ? (sg.manual ? 'Ttd sudah ada di dokumen · ' : 'Ditandatangani ') + fmt(sg.at) : old ? 'Perlu tanda tangan ulang (koreksinya sudah direvisi)' : esc(s.role)}</span></div>
+      ${ok && sg.img ? `<img class="sg" src="${sg.img}" alt="">` : ''}<span class="pill ${ok ? 'ok' : old ? 'bad' : 'no'}">${ok ? 'Sudah' : old ? 'Ulang' : 'Belum'}</span>
+      ${ADMIN && !ok ? `<button class="btn sm sec" data-manual="${esc(s.key)}" title="Ttd sudah ada di PDF (ttd basah/pindaian)">Tandai sudah</button>` : ''}
       ${ADMIN && sg ? `<button class="btn sm danger" data-reset="${esc(s.key)}">Hapus</button>` : ''}</div>`;
   }).join('');
   $('list').querySelectorAll('[data-reset]').forEach(b => b.onclick = () => resetSig(b.dataset.reset));
+  $('list').querySelectorAll('[data-manual]').forEach(b => b.onclick = async () => {
+    const s = S.doc.signers.find(x => x.key === b.dataset.manual);
+    if (!s) return;
+    openSheet(`<div class="big-emoji">✅</div><h3 style="text-align:center">Tandai ${esc(s.name)} sudah tanda tangan?</h3><p class="lead" style="text-align:center">Pakai ini bila tanda tangannya sudah ada di PDF (ttd basah atau hasil pindai). Tidak ada gambar ttd tambahan yang ditempel.</p>
+      <div class="btns"><button class="btn sec" id="mnNo">Batal</button><button class="btn" id="mnYes">Ya, tandai sudah</button></div>`, sh => {
+      sh.querySelector('#mnNo').onclick = closeSheet;
+      sh.querySelector('#mnYes').onclick = async () => {
+        try { await api('docs/' + DOC_ID + '/admin', { method: 'PUT', body: JSON.stringify({ k: ADMIN, manual: { key: s.key, on: true } }) }); closeSheet(); toast('✅ ' + s.name + ' ditandai sudah'); await afterChange(); } catch (e) { toast('⚠️ ' + e.message); }
+      };
+    });
+  });
   // kartu pribadi
   const m = me(), mc = $('meCard'), gd = $('guide');
   gd.innerHTML = m && !sigOk(m) ? `<div class="card me"><h2 style="margin-bottom:6px">🧭 Cukup 3 langkah</h2>
@@ -416,7 +428,7 @@ function place(el, x, y, w, h) { Object.assign(el.style, { left: x * 100 + '%', 
 function renderOverlays() {
   PAGES.forEach(p => p.ov.innerHTML = '');
   for (const s of S.doc.signers) {
-    if (!sigOk(s)) continue;
+    if (!sigOk(s) || !S.sigs[s.key].img) continue;
     for (const p of allPos(s)) {
       if (!ovOf(p.page)) continue;
       const b = document.createElement('div'); b.className = 'sig'; place(b, p.x, p.y, p.w, p.h);
@@ -720,7 +732,7 @@ async function downloadPdf() {
       const r = await fetch('/api/stempel?k=' + encodeURIComponent(ADMIN), { cache: 'no-store' });
       if (r.ok) stamp = await pdf.embedPng(await r.arrayBuffer());
     }
-    for (const s of S.doc.signers.filter(sigOk)) {
+    for (const s of S.doc.signers.filter(x => sigOk(x) && S.sigs[x.key].img)) {
       const png = await pdf.embedPng(S.sigs[s.key].img);
       for (const [pi, p] of allPos(s).entries()) {
       const pg = pages[p.page - 1]; if (!pg) continue; const { width: W, height: H } = pg.getSize();
