@@ -999,7 +999,7 @@ function detectSigners(pages, candidates) {
         const rest = l.items.filter(it => it.x0 >= x1 - 1).map(it => it.str).join(' ');
         const dots = /:\s*(\.{3,}|…|_{3,})/.test(rest); // baris "Nama : ......"
         const la = solo && labelAbove(pg, l, x0, x1);
-        const space = !!(la && la.gap >= 22 && la.gap <= 140 && /,$/.test(la.lab)); // label "Jabatan," + ruang kosong di atas nama = tempat ttd
+        const space = !!(la && la.gap <= 140 && la.gap >= 22 && (/,$/.test(la.lab) || /^(mengetahui|menyetujui)\b|\b(kurator|kepala|pengampu|penanggung jawab|notulis|notulen|ketua|sekretaris|wali)\b[^.]*$/i.test(la.lab))); // label jabatan di atas + ruang kosong = tempat ttd
         const after = pi > sp || (pi === sp && li >= sl);
         hits.push({ pi, l, x0, x1, solo, sig: dots || space, after });
       });
@@ -1024,17 +1024,43 @@ function detectSigners(pages, candidates) {
         const gap = gapAbove(p, l, bx, bx + w), hh = Math.max(36, Math.min(96, gap - 4));
         box = { x: bx, y: l.top - hh - 2, w, h: hh };
       }
-      return { page: hit.pi + 1, x: box.x / p.W, y: Math.max(0, box.y) / p.H, w: box.w / p.W, h: box.h / p.H, colon: !!colon };
+      return { page: hit.pi + 1, x: box.x / p.W, y: Math.max(0, box.y) / p.H, w: box.w / p.W, h: box.h / p.H, colon: !!colon, rowTop: l.top, rowBot: l.bottom, pW: p.W, pH: p.H };
     };
     // kolom ttd utama = kemunculan pertama yang berbentuk blok ttd; bila tak ada, kemunculan pertama setelah penutup ("Demikian")
     const sigHits = hits.filter(h => h.sig), hit = sigHits[0] || hits.find(h => h.after);
     if (!hit) continue;
     const main = boxOf(hit);
-    const more = sigHits.filter(h => h !== hit).map(boxOf).slice(0, 5).map(({ colon, ...b }) => b);
-    const { colon: _c, ...mb } = main;
-    found.push({ ...cand, ...mb, ...(more.length ? { more } : {}), _ord: hit.pi * 1e6 + hit.l.top * 1e3 + hit.x0 });
+    const more = sigHits.filter(h => h !== hit).map(boxOf).slice(0, 5);
+    found.push({ ...cand, ...main, ...(more.length ? { more } : {}), _ord: hit.pi * 1e6 + hit.l.top * 1e3 + hit.x0 });
   }
-  return found.sort((a, b) => a._ord - b._ord).map(({ _ord, ...s }) => s);
+  spreadTight(found);
+  const strip = ({ colon, rowTop, rowBot, pW, pH, ...b }) => b;
+  return found.sort((a, b) => a._ord - b._ord).map(({ _ord, ...s }) => ({ ...strip(s), ...(s.more ? { more: s.more.map(strip) } : {}) }));
+}
+// baris "Nama : ....." yang terlalu rapat (jarak antar baris < 30pt): kolom ttd dibuat zig-zag kiri-kanan
+// seperti daftar hadir, sehingga tiap ttd dapat ruang lebih besar dan tidak saling menimpa
+function spreadTight(found) {
+  const boxes = found.flatMap(s => [s, ...(s.more || [])]).filter(b => b.colon);
+  const byPage = {};
+  boxes.forEach(b => (byPage[b.page] = byPage[b.page] || []).push(b));
+  for (const list of Object.values(byPage)) {
+    list.sort((a, b) => a.rowTop - b.rowTop);
+    const groups = [];
+    list.forEach(b => {
+      const g = groups[groups.length - 1], prev = g && g[g.length - 1];
+      if (prev && Math.abs(prev.x - b.x) < 0.03 && b.rowTop - prev.rowTop < 30) g.push(b); else groups.push([b]);
+    });
+    for (const g of groups) {
+      if (g.length < 2) continue;
+      const W = g[0].pW, H = g[0].pH, x0 = g[0].x * W;
+      const pitch = (g[g.length - 1].rowTop - g[0].rowTop) / (g.length - 1);
+      const wz = Math.min(130, Math.max(90, (W - 30 - x0) / 2 - 4)), hz = Math.min(56, Math.max(28, pitch * 2 - 4));
+      g.forEach((b, i) => {
+        const bx = x0 + (i % 2 ? wz + 8 : 0), by = b.rowBot + 2 - hz;
+        Object.assign(b, { x: bx / W, y: Math.max(0, by) / H, w: wz / W, h: hz / H });
+      });
+    }
+  }
 }
 // penanda tangan di luar daftar pegawai (mis. Pengampu): nama di bawah label berakhiran koma dengan ruang ttd di atasnya
 function findExternal(pages, known) {
