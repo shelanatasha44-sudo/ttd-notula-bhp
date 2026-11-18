@@ -864,7 +864,10 @@ const WA_GAUL = [
   (b, n, w, t, l) => `${b[0].toUpperCase() + b.slice(1)}, selamat ${w} 🙌\n\n*${t}* tinggal nunggu tanda tangan kamu nih. Linknya di sini ya:\n${l}\n\nKalau ada koreksi, langsung aja tandai di situ. Thanks a lot! 😊`
 ];
 const hashStr = x => [...String(x)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
-const waText = s => pejabatRole(s.role)
+// penanda tangan dari luar kantor (Wali/Pengampu, dll): pesan resmi, rapi, dengan petunjuk singkat
+const pegawaiRole = r => /kurator|kepala|penelaah|pengelola|pengolah|penata|pengadministrasi|analis|arsiparis|pranata|bendahara|sekretaris/i.test(r || '');
+const waLuar = s => `Yth. ${s.sapaan === 'Bapak' || s.sapaan === 'Ibu' ? s.sapaan : 'Bapak/Ibu'} ${s.name}${s.role ? '\n' + s.role : ''}\n\nDengan hormat,\nbersama ini kami sampaikan *${S.doc.title}* untuk dibaca dan ditandatangani secara digital melalui tautan berikut:\n${linkFor(s)}\n\nCaranya:\n1. Buka tautan di atas, lalu baca laporannya.\n2. Ketuk tombol biru *Sudah pas*.\n3. Buat tanda tangan dengan jari, lalu ketuk *Simpan*.\n\nApabila ada isi yang perlu diperbaiki, silakan pilih *Ya, ada koreksi* dan tandai bagiannya.\n\nAtas perhatian dan kerja samanya, kami ucapkan terima kasih. 🙏\n\nBalai Harta Peninggalan Medan`;
+const waText = s => !pejabatRole(s.role) && !pegawaiRole(s.role) ? waLuar(s) : pejabatRole(s.role)
   ? `Selamat ${salam()} ${s.sapaan || 'Bapak/Ibu'} ${s.name}, mohon berkenan membaca dan menandatangani ${S.doc.title} melalui link berikut:\n${linkFor(s)}\n\nTerima kasih 🙏`
   : WA_GAUL[(hashStr(DOC_ID) + Math.max(0, ((S.admin && S.admin.signers) || []).findIndex(x => x.key === s.key))) % WA_GAUL.length](s.sapaan === 'Ibu' ? 'sis' : 'bro', String(s.name).trim().split(/\s+/)[0], salam(), S.doc.title, linkFor(s));
 async function resetSig(key) {
