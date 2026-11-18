@@ -1015,7 +1015,17 @@ function detectSigners(pages, candidates) {
       if (colon) { // baris "Nama : ........"
         const cx = colon.x0 + (colon.x1 - colon.x0) * (colon.str.indexOf(':') + 1) / Math.max(1, colon.str.length);
         const next = l.items.find(it => it.x0 > cx + 20 && /[a-z]/i.test(it.str) && !/^\.+$/.test(it.str.trim()));
-        const x0 = cx + 4, x1 = Math.min(next ? next.x0 - 12 : x0 + 140, x0 + 150, p.W - 25);
+        let x0 = cx + 4, x1 = Math.min(next ? next.x0 - 12 : x0 + 140, x0 + 150, p.W - 25);
+        // kolom ttd dipas tepat di garis titik-titik/garis bawah ("......" / "_____")
+        let d0 = null, d1 = null;
+        l.items.filter(it => it.x1 > cx && (!next || it.x0 < next.x0)).forEach(it => {
+          const n = it.str.length;
+          for (let j = 0; j < n; j++) if (/[._…]/.test(it.str[j])) {
+            const a = it.x0 + (it.x1 - it.x0) * (j / n), b = it.x0 + (it.x1 - it.x0) * ((j + 1) / n);
+            if (a >= cx - 1) { if (d0 === null) d0 = a; d1 = b; }
+          }
+        });
+        if (d0 !== null && d1 - d0 >= 30) { x0 = d0; x1 = d1; }
         const gap = gapAbove(p, l, x0, x1);
         const up = Math.max(12, Math.min(26, gap - 2));
         box = { x: x0, y: l.top - up, w: Math.max(60, x1 - x0), h: (l.bottom - l.top) + up + 2 };
@@ -1033,13 +1043,12 @@ function detectSigners(pages, candidates) {
     const more = sigHits.filter(h => h !== hit).map(boxOf).slice(0, 5);
     found.push({ ...cand, ...main, ...(more.length ? { more } : {}), _ord: hit.pi * 1e6 + hit.l.top * 1e3 + hit.x0 });
   }
-  spreadTight(found);
+  evenRows(found);
   const strip = ({ colon, rowTop, rowBot, pW, pH, ...b }) => b;
   return found.sort((a, b) => a._ord - b._ord).map(({ _ord, ...s }) => ({ ...strip(s), ...(s.more ? { more: s.more.map(strip) } : {}) }));
 }
-// baris "Nama : ....." yang terlalu rapat (jarak antar baris < 30pt): kolom ttd dibuat zig-zag kiri-kanan
-// seperti daftar hadir, sehingga tiap ttd dapat ruang lebih besar dan tidak saling menimpa
-function spreadTight(found) {
+// baris "Nama : ....." berurutan: kolom ttd tepat di garis titik-titiknya, tinggi kolomnya diseragamkan agar rapi
+function evenRows(found) {
   const boxes = found.flatMap(s => [s, ...(s.more || [])]).filter(b => b.colon);
   const byPage = {};
   boxes.forEach(b => (byPage[b.page] = byPage[b.page] || []).push(b));
@@ -1048,17 +1057,13 @@ function spreadTight(found) {
     const groups = [];
     list.forEach(b => {
       const g = groups[groups.length - 1], prev = g && g[g.length - 1];
-      if (prev && Math.abs(prev.x - b.x) < 0.03 && b.rowTop - prev.rowTop < 30) g.push(b); else groups.push([b]);
+      if (prev && Math.abs(prev.x - b.x) < 0.05 && b.rowTop - prev.rowTop < 40) g.push(b); else groups.push([b]);
     });
     for (const g of groups) {
       if (g.length < 2) continue;
-      const W = g[0].pW, H = g[0].pH, x0 = g[0].x * W;
       const pitch = (g[g.length - 1].rowTop - g[0].rowTop) / (g.length - 1);
-      const wz = Math.min(130, Math.max(90, (W - 30 - x0) / 2 - 4)), hz = Math.min(56, Math.max(28, pitch * 2 - 4));
-      g.forEach((b, i) => {
-        const bx = x0 + (i % 2 ? wz + 8 : 0), by = b.rowBot + 2 - hz;
-        Object.assign(b, { x: bx / W, y: Math.max(0, by) / H, w: wz / W, h: hz / H });
-      });
+      const hz = Math.min(pitch + 4, ...g.map(b => b.h * b.pH)), x0 = Math.min(...g.map(b => b.x)), x1 = Math.max(...g.map(b => b.x + b.w));
+      g.forEach(b => Object.assign(b, { x: x0, w: x1 - x0, y: Math.max(0, b.rowBot + 2 - hz) / b.pH, h: hz / b.pH }));
     }
   }
 }
