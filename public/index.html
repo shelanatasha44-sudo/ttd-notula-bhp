@@ -997,7 +997,7 @@ function detectSigners(pages, candidates) {
         const solo = (at === 0 || gp(at)) && (e >= C.length || gp(e) || k >= C.length || gp(k));
         const x0 = C[at].x, x1 = C[e - 1].x2;
         const rest = l.items.filter(it => it.x0 >= x1 - 1).map(it => it.str).join(' ');
-        const dots = /:\s*(\.{3,}|…|_{3,})/.test(rest); // baris "Nama : ......"
+        const dots = /:\s*(\d{1,2}\s*[.)]\s*)?(\.{3,}|…|_{3,})/.test(rest); // baris "Nama : ......" atau "Nama : 2. ......"
         const la = solo && labelAbove(pg, l, x0, x1);
         const space = !!(la && la.gap <= 140 && la.gap >= 22 && (/,$/.test(la.lab) || /^(mengetahui|menyetujui)\b|\b(kurator|kepala|pengampu|penanggung jawab|notulis|notulen|ketua|sekretaris|wali)\b[^.]*$/i.test(la.lab))); // label jabatan di atas + ruang kosong = tempat ttd
         const after = pi > sp || (pi === sp && li >= sl);
@@ -1019,13 +1019,14 @@ function detectSigners(pages, candidates) {
         // kolom ttd dipas tepat di garis titik-titik/garis bawah ("......" / "_____")
         let d0 = null, d1 = null;
         l.items.filter(it => it.x1 > cx && (!next || it.x0 < next.x0)).forEach(it => {
-          const n = it.str.length;
-          for (let j = 0; j < n; j++) if (/[._…]/.test(it.str[j])) {
-            const a = it.x0 + (it.x1 - it.x0) * (j / n), b = it.x0 + (it.x1 - it.x0) * ((j + 1) / n);
+          const n = it.str.length, re = /[._…]{3,}|…+/g; let m;
+          while ((m = re.exec(it.str))) { // hanya deretan titik/garis (bukan titik pada nomor "2.")
+            const a = it.x0 + (it.x1 - it.x0) * (m.index / n), b = it.x0 + (it.x1 - it.x0) * ((m.index + m[0].length) / n);
             if (a >= cx - 1) { if (d0 === null) d0 = a; d1 = b; }
           }
         });
         if (d0 !== null && d1 - d0 >= 30) { x0 = d0; x1 = d1; }
+        if (d0 !== null && x1 - x0 < 110) { const c = (x0 + x1) / 2; x0 = Math.max(cx + 4, c - 55); x1 = Math.min(p.W - 25, x0 + 110); } // garis pendek: kolom diperlebar sedikit agar ttd tidak kekecilan
         const gap = gapAbove(p, l, x0, x1);
         const up = Math.max(12, Math.min(26, gap - 2));
         box = { x: x0, y: l.top - up, w: Math.max(60, x1 - x0), h: (l.bottom - l.top) + up + 2 };
