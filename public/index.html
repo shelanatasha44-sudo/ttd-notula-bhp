@@ -1091,7 +1091,9 @@ function guessMeta(pages, fileName) {
   const t = pages.map(p => p.text).join('\n');
   const tgl = (t.match(/Tanggal\s*:\s*([^\n]+)/i) || [])[1], hari = (t.match(/Hari\s*:\s*([A-Za-z']+)/i) || [])[1];
   const agenda = ((t.match(/Agenda\s*:\s*([\s\S]*?)\n\s*(?:Peserta|Jalannya|Daftar|$)/i) || [])[1] || '').replace(/\s+/g, ' ').trim();
-  let title = 'Notula ' + (agenda ? agenda.trim().replace(/\s+/g, ' ').replace(/[.;,]+$/, '') : fileName.replace(/\.pdf$/i, '').replace(/[_]+/g, ' ').replace(/^notula\s*/i, ''));
+  const fromFile = fileName.replace(/\.pdf$/i, '').replace(/[_]+/g, ' ').replace(/\s*\(\d+\)\s*$/, '').trim();
+  let title = agenda ? 'Notula ' + agenda.trim().replace(/\s+/g, ' ').replace(/[.;,]+$/, '')
+    : /^(notula|laporan|berita acara|ba)\b/i.test(fromFile) ? fromFile : 'Notula ' + fromFile;
   if (title.length > 170) title = title.slice(0, 167).replace(/\s+\S*$/, '') + '...';
   return { title, subtitle: 'Balai Harta Peninggalan Medan' + (tgl ? ' · ' + (hari ? hari.trim() + ', ' : '') + tgl.trim() : '') };
 }
